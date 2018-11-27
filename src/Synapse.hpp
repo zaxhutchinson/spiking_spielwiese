@@ -1,3 +1,15 @@
+/*
+Synapse.cpp
+Zachary Hutchinson
+
+Provides a series of Synapse classes to model different types of 
+connections.
+
+Synapse class itself is an interface following the NVI pattern. Its
+client is the Neuron class, or, said another way, the interface's 
+functionality provides the necessary information to the Neuron class.
+*/
+
 #ifndef SYNAPSE_HPP
 #define SYNAPSE_HPP
 
@@ -6,6 +18,9 @@
 #include"spspdef.hpp"
 
 namespace spsp {
+    ////////////////////////////////////////////////////////////////////
+    // ENUM
+    ////////////////////////////////////////////////////////////////////
 
     enum class SynapseType {
         SIMPLE,
@@ -14,11 +29,8 @@ namespace spsp {
     };
 
     ////////////////////////////////////////////////////////////////////
-    // INTERFACES
+    // INTERFACE
     ////////////////////////////////////////////////////////////////////
-
-    
-
     class Synapse {
     public:
         virtual ~Synapse() = default;
@@ -55,7 +67,9 @@ namespace spsp {
 
     };
 
-
+    ////////////////////////////////////////////////////////////////////
+    // CLASSES
+    ////////////////////////////////////////////////////////////////////
 
     class SimpleSynapse : public Synapse {
     public:

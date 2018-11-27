@@ -13,16 +13,50 @@ All files with "Example" in the name are exactly that.
 
 A makefile is included. You can build the current examples using:
 
-<i>make trace</i>
-TraceExample is a spike detector and current multimeter GUI for the various neuron models. LEFT/RIGHT changes neuron models. UP/DOWN changes the amount of input into the model.
+`make trace`:  TraceExample is a spike detector and current multimeter GUI for the various neuron models. LEFT/RIGHT changes neuron models. UP/DOWN changes the amount of input into the model.
 
-<i>make follow</i>
-FollowExample
+`make follow`: FollowExample shows how spiking neurons can be used to move an agent about in 2d space. Use WASD to move your agent. The others will follow.
 
-<i>make target</i>
-TargetExample
+`make target`: TargetExample is a variant of the follow example. The agents will follow the player around the screen and fire small shells in the direction of the player. Currently not shown, the "turret" object of each agent rotates before firing at the player. The turret, just like the non-player agents, are controlled with spiking neuron output. Same controls as FollowExample. There is no end. Being hit by the projectile does nothing and there is no way to win.
 
-<i>make gridwar</i>
-GridWarExample
+`make gridwar`: GridWarExample shows how "energy" from a single spiking neuron can spread throughout a lattice network. The visual is comprised of N grids for N starting locations. Each grid (shown in a different color) inhibits activity in the other grids. Each growth will fight the others for space. External input is provided to the starting neuron for 1000 time steps after which it is removed and persistent activity is maintained through recurrent excitation.
 
+## Neuron Class
+The neuron class is an implementation of the Izhikevich neuron model. Instances of the neuron model are created by providing a template. Templates (see NTemplate class) provide the constants necessary to replicate various neuron types described in [Dynamical Systems in Neuroscience:
+The Geometry of Excitability and Bursting by Eugene M. Izhikevich 2007](https://www.izhikevich.org/publications/dsn/index.htm). Many of the neuron types are represented in this project.
 
+Apart from just replicating the voltage and reset equations, other aspects of incorporating neurons into a network must be attended to and that is the main benefit of the library.
+
+Action potential output is modeled through an alpha function. The neuron model keeps a list of recent spike times and uses their age to determine the output, overlaying each alpha additively. The length of the alpha function corresponds to the constant `alphabase`. A smaller base value creates a shorter action potential. The age of each spike is maintained until `max_spike_age` after which it is discarded. Currently, `max_spike_age` is `10*alphabase`.
+
+Each Neuron object stores lists of input and output synapses. Each call to update sums the values of all its input synapses, updates itself and pushes its current output into each of the output synapses.
+
+Each Neuron object also has the capability to introduce random noise (uniform or normal) into its update method.
+
+## Synapse Classes
+The Synapse class is an interface following the NVI pattern. Its client is the Neuron class and provides all the functionality required by that class.
+
+Some synapse models were designed to connect neurons together, but most (if not all) can be used to connect spiking neurons to non-SNN objects. Each synapse's signal value can be set and retrieved by non-neuronal objects.
+
+NOTE: Each time either the pre- or post-synaptic neuron fires, the current time is stored in the synapse. Time is modeled using a 64bit unsigned int. Only the most recent spike is stored in the neuron. In order to model the case when a synapse has not experienced a spike, the last spike time is stored in a pointer. A null value means a spike at an end has not registered a spike. This is necessary for classes that contain some form of synaptic plasticity.
+
+### SimpleSynapse Class
+A simple derivative of the interface. It connects two neurons in the simplest manner. The presynaptic input is scaled by a preset weight and stored for retrieval by the postsynaptic neuron.
+
+### STDPSynapse Class
+Derived from SimpleSynapse, it overrides enough functionality to provide unsupervised Hebbian learning.
+
+Variables:
+
+    learn_rate (pre and post): determines how fast a synapse is enhanced or depressed. It scales the typical Hebbian piecewise function. SPSP makes no assumptions whether a synapse changes due to Hebbian or anti-Hebbian activity. pre_learn_rate scales synaptic changes due to presynaptic activity. And post_learn_rate scales changes due to post-synaptic activity.
+
+    learn_window (pre and post): The typical Hebbian function relies on a window of effect. If two connected neurons spike outside this window, there is no change. Again, the library makes no assumption that pre and post windows are symmetrical, providing a variable for both. The window value is also used as the denominator in the exponent.
+
+### Counting Synapse
+
+A counting synapse is an accumulator based on the number of pre-synaptic spikes it has seen. In other words, it is a spike detector coupled with incrementation. Counting synapses must be connected to neuron output. They will not count the activity of a post-synaptic neuron. Each time the connected neuron spikes, count increases by the value stored in weight.
+
+NOTE: Count is stored as a shared pointer to a double. This was done to allow for the count to exist outside the synapse and remove a separate query. The synapse can be provided with a shared pointer upon creation.
+
+### PC Synapse
+PC stands for Producer-Consumer. It is a type of Counting Synapse that adds to the count when the presynaptic neuron spikes and subtracts from count when the post-synaptic neuron spikes. 
