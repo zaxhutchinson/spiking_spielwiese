@@ -48,9 +48,9 @@ Derived from SimpleSynapse, it overrides enough functionality to provide unsuper
 
 Variables:
 
-    learn_rate (pre and post): determines how fast a synapse is enhanced or depressed. It scales the typical Hebbian piecewise function. SPSP makes no assumptions whether a synapse changes due to Hebbian or anti-Hebbian activity. pre_learn_rate scales synaptic changes due to presynaptic activity. And post_learn_rate scales changes due to post-synaptic activity.
+*learn_rate (pre and post): determines how fast a synapse is enhanced or depressed. It scales the typical Hebbian piecewise function. SPSP makes no assumptions whether a synapse changes due to Hebbian or anti-Hebbian activity. pre_learn_rate scales synaptic changes due to presynaptic activity. And post_learn_rate scales changes due to post-synaptic activity.
 
-    learn_window (pre and post): The typical Hebbian function relies on a window of effect. If two connected neurons spike outside this window, there is no change. Again, the library makes no assumption that pre and post windows are symmetrical, providing a variable for both. The window value is also used as the denominator in the exponent.
+*learn_window (pre and post): The typical Hebbian function relies on a window of effect. If two connected neurons spike outside this window, there is no change. Again, the library makes no assumption that pre and post windows are symmetrical, providing a variable for both. The window value is also used as the denominator in the exponent.
 
 ### Counting Synapse
 
