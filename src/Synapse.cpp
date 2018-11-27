@@ -188,19 +188,19 @@ namespace spsp {
         pre_learn_rate = rate;
     }
 
-
-
     ////////////////////////////////////////////////////////////////////////
 
-
     CountingSynapse::CountingSynapse() 
-        : type(SynapseType::PC), active(true), weight(1.0), 
+        : type(SynapseType::COUNTING), active(true), weight(1.0), 
             count(std::make_shared<double>(0.0)), has_signal(false) {
     }
     CountingSynapse::CountingSynapse(double weight, sptr<double> count)
-        : type(SynapseType::PC), active(true), weight(weight), 
+        : type(SynapseType::COUNTING), active(true), weight(weight), 
             count(count), has_signal(false) {
     
+    }
+    CountingSynapse::~CountingSynapse() {
+
     }
     double CountingSynapse::GetCount() const {
         return *count;
@@ -235,7 +235,7 @@ namespace spsp {
     void CountingSynapse::do_SetWeight(double weight) {
         this->weight = weight;
     }
-    double CountingSynapse::do_GetSignal(uint64_t delay=0) const {
+    double CountingSynapse::do_GetSignal(uint64_t delay) const {
         if(has_signal) return *count;
         else return 0.0;
     }
@@ -255,18 +255,18 @@ namespace spsp {
         // Do nothing
     }
 
-
-
-
-
     /////////////////////////////////////////////////////////////////////////
 
     PCSynapse::PCSynapse() 
-        : CountingSynapse() {
+        : type(SynapseType::PC), active(true), weight(1.0), 
+            count(std::make_shared<double>(0.0)), has_signal(false) {
     }
     PCSynapse::PCSynapse(double weight, sptr<double> count)
-        : CountingSynapse(weight,count) {
-    
+        : type(SynapseType::COUNTING), active(true), weight(weight), 
+            count(count), has_signal(false) {
+    }
+    PCSynapse::~PCSynapse() {
+
     }
     void PCSynapse::do_RegisterNewPreSpike(uint64_t time) {
         *count += weight;

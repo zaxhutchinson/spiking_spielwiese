@@ -25,6 +25,7 @@ namespace spsp {
     enum class SynapseType {
         SIMPLE,
         STDP,
+        COUNTING,
         PC,
     };
 
