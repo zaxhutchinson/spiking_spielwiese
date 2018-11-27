@@ -1,3 +1,10 @@
+/*
+SPSPDEF
+by Zachary Hutchinson
+
+Templates and other meta stuff used by SPSP.
+*/
+
 #include<vector>
 #include<memory>
 #include<list>

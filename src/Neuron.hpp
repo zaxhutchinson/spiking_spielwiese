@@ -1,6 +1,8 @@
 /*
 Neuron.hpp
-by zax
+by Zachary Hutchinson
+
+Implementation of the Inzhikevich neuron model with some added functionality.
 
 */
 #ifndef NEURON_HPP
@@ -23,14 +25,18 @@ namespace spsp {
 
     public:
         Neuron();
-        Neuron(sptr<NT> nt);
+        Neuron(sptr<NT> nt); // Ctor to use
 
+        // Places a neuron object back into its original state.
+        // Does nothing to associated synapse objects.
         void Reset();
 
+        // Update state
         void Update(uint64_t time);
-        void UpdateSpikes(bool new_spike);
-        void RegisterSpike(uint64_t time);
+        void UpdateSpikes(bool new_spike);  // Called by Update
+        void RegisterSpike(uint64_t time);  // Called by Update
 
+        // Turn on noise
         void EnableNoise(NoiseType type, double val_a=0.0, double val_b=1.0, long seed=0);
         void EnableNoise(NoiseType type, double val_a, double val_b, sptr<std::mt19937_64> rng);
 
@@ -39,9 +45,13 @@ namespace spsp {
         void AddInputSynapse(sptr<Synapse> synapse);
         void AddOutputSynapse(sptr<Synapse> synapse);
 
+        // Sums synaptic input signals
         double Input();
+
+        // Sends current output to all output synapses
         void Output();
 
+        // Get current v, u, and output
         double V();
         double U();
         double GetCurrentOutput();

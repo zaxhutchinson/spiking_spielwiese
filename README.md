@@ -33,6 +33,11 @@ Each Neuron object stores lists of input and output synapses. Each call to updat
 
 Each Neuron object also has the capability to introduce random noise (uniform or normal) into its update method.
 
+## NT Struct
+Variables needed to initialize a new neuron object to particular prototype.
+
+NOTE: `baseline` provides a way to give a neuron object an always on current.
+
 ## Synapse Classes
 The Synapse class is an interface following the NVI pattern. Its client is the Neuron class and provides all the functionality required by that class.
 
