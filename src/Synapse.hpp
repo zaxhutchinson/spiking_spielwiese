@@ -24,6 +24,7 @@ namespace spsp {
 
     enum class SynapseType {
         SIMPLE,
+        PROTO,
         STDP,
         COUNTING,
         PC,
@@ -39,15 +40,12 @@ namespace spsp {
         Synapse & operator=(Synapse const &) = delete;
 
         SynapseType GetType() const;
+        void SetType(SynapseType type);
         bool GetActive() const;
         void SetActive(bool active);
-        double GetWeight() const;
-        void SetWeight(double weight);
         double GetSignal(uint64_t delay=0) const;
         void SetSignal(double signal);
-        const uint64_t * GetPreSpikeTime() const;
         void RegisterNewPreSpike(uint64_t time);
-        const uint64_t * GetPostSpikeTime() const;
         void RegisterNewPostSpike(uint64_t time);
 
     protected:
@@ -55,15 +53,12 @@ namespace spsp {
 
     private:
         virtual SynapseType do_GetType() const = 0;
+        virtual void do_SetType(SynapseType type) = 0;
         virtual bool do_GetActive() const = 0;
         virtual void do_SetActive(bool active) = 0;
-        virtual double do_GetWeight() const = 0;
-        virtual void do_SetWeight(double weight) = 0;
         virtual double do_GetSignal(uint64_t delay=0) const = 0;
         virtual void do_SetSignal(double signal) = 0;
-        virtual const uint64_t * do_GetPreSpikeTime() const = 0;
         virtual void do_RegisterNewPreSpike(uint64_t time) = 0;
-        virtual const uint64_t * do_GetPostSpikeTime() const = 0;
         virtual void do_RegisterNewPostSpike(uint64_t time) = 0;
 
     };
@@ -78,17 +73,27 @@ namespace spsp {
         SimpleSynapse(double weight, uint64_t signal_history_size=1);
         virtual ~SimpleSynapse();
 
+        double GetWeight() const;
+        void SetWeight(double weight);
+        uint64_t GetTime() const;
+        void SetTime(uint64_t time);
+        uint64_t GetSignalHistorySize() const;
+        void SetSignalHistorySize(uint64_t size);
+        const uint64_t * GetPreSpikeTime() const;
+        void SetPreSpikeTime(uint64_t time);
+        void ResetPreSpikeTime();
+        const uint64_t * GetPostSpikeTime() const;
+        void SetPostSpikeTime(uint64_t time);
+        void ResetPostSpikeTime();
+
     protected:
         SynapseType do_GetType() const final;
+        void do_SetType(SynapseType type) final;
         bool do_GetActive() const final;
         void do_SetActive(bool active) final;
-        double do_GetWeight() const final;
-        void do_SetWeight(double weight) final;
         double do_GetSignal(uint64_t delay=0) const final;
         void do_SetSignal(double signal) override;
-        const uint64_t * do_GetPreSpikeTime() const final;
         void do_RegisterNewPreSpike(uint64_t time) override;
-        const uint64_t * do_GetPostSpikeTime() const final;
         void do_RegisterNewPostSpike(uint64_t time) override;
 
     protected:
@@ -102,7 +107,33 @@ namespace spsp {
         uptr<uint64_t> post_spike_time;
     };
 
+    class ProtoSynapse : public SimpleSynapse {
+    public:
+        ProtoSynapse();
+        ProtoSynapse(double delta, uint64_t window);
+        virtual ~ProtoSynapse();
 
+        double GetMaturity() const;
+        void SetMaturity(double maturity);
+        double GetDelta() const;
+        void SetDelta(double delta);
+        uint64_t GetWindow() const;
+        void SetWindow(uint64_t window);
+        void AddSynapse(sptr<ProtoSynapse> synapse);
+
+    private:
+        void do_SetSignal(double signal) final;
+        void do_RegisterNewPreSpike(uint64_t time) final;
+        void do_RegisterNewPostSpike(uint64_t time) final;
+
+    private:
+
+        double maturity;
+        double delta;
+        uint64_t window;
+        lsptr<ProtoSynapse> dendritic_tree;
+
+    };
 
     class STDPSynapse : public SimpleSynapse {
     public:
@@ -110,6 +141,7 @@ namespace spsp {
         STDPSynapse(double weight, uint64_t signal_history_size=1);
         virtual ~STDPSynapse();
 
+        
         double GetStrength() const;
         void SetStrength(double strength);
         uint64_t GetPostLearnWindow() const;
@@ -128,14 +160,6 @@ namespace spsp {
         void do_RegisterNewPostSpike(uint64_t time) final;
 
     private:
-        SynapseType type;
-        bool active;
-        double weight;
-        uint64_t time;
-        uint64_t signal_history_size;
-        vec<double> signal;
-        uptr<uint64_t> pre_spike_time;
-        uptr<uint64_t> post_spike_time;
         double strength;
         uint64_t post_learn_window;
         uint64_t pre_learn_window;
@@ -161,13 +185,9 @@ namespace spsp {
         SynapseType do_GetType() const final;
         bool do_GetActive() const final;
         void do_SetActive(bool active) final;
-        double do_GetWeight() const final;
-        void do_SetWeight(double weight) final;
         double do_GetSignal(uint64_t delay=0) const final;
         void do_SetSignal(double signal) final;
-        const uint64_t * do_GetPreSpikeTime() const final;
         void do_RegisterNewPreSpike(uint64_t time) override;
-        const uint64_t * do_GetPostSpikeTime() const final;
         void do_RegisterNewPostSpike(uint64_t time) override;
     
     protected:
@@ -187,11 +207,7 @@ namespace spsp {
         void do_RegisterNewPreSpike(uint64_t time) final;
         void do_RegisterNewPostSpike(uint64_t time) final;
     private:
-        SynapseType type;
-        bool active;
-        bool has_signal;
-        double weight;
-        sptr<double> count;
+
     };
 
 }

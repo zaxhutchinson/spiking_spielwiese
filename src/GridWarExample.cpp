@@ -279,7 +279,7 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
             }
 
             for(int i = 0; i < NUM_PLAYERS; i++) {
-                sptr<Synapse> in = std::make_shared<SimpleSynapse>(INH_WEIGHT);
+                sptr<Synapse> in = std::make_shared<SimpleSynapse>(INH_WEIGHT,2);
                 point[i]->AddOutputSynapse(in);
                 for(int j = 0; j < NUM_PLAYERS; j++) {
                     if(i==j) continue;
@@ -303,7 +303,7 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
                     int ny = (y+yoff[i]+GRID_SIZE_Y)%GRID_SIZE_Y;
 
                     for(int j = 0; j < NUM_PLAYERS; j++) {
-                        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(EXC_WEIGHT);
+                        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(EXC_WEIGHT,2);
                         network[x][y][j]->AddOutputSynapse(syn);
                         network[nx][ny][j]->AddInputSynapse(syn);
                     }
@@ -399,7 +399,7 @@ void AddPlayerToNetwork(vec<vec<vsptr<Neuron>>> & network,
 
     for(int i = 0; i < player->bases.size(); i++) {
 
-        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(1.0);
+        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(1.0,2);
         player->synapses.push_back(syn);
         player->inputs.push_back(STARTING_INPUT);
 
@@ -426,7 +426,7 @@ void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
                             std::uniform_int_distribution<int> & dist,
                             std::mt19937_64 & rng,
                             uint64_t time) {
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(int x = GRID_SIZE_X-1; x >= 0; x--) {
         for(int y = GRID_SIZE_Y-1; y >= 0; y--) {
             //int first = dist(rng);
