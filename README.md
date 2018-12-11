@@ -9,6 +9,8 @@ As I work on the library I am adding examples both to test and to demonstrate my
 * Synapse
 * spspdef
 
+## Examples
+
 All files with "Example" in the name are exactly that.
 
 A makefile is included. You can build the current examples using:
@@ -19,7 +21,11 @@ A makefile is included. You can build the current examples using:
 
 `make target`: TargetExample is a variant of the follow example. The agents will follow the player around the screen and fire small shells in the direction of the player. Currently not shown, the "turret" object of each agent rotates before firing at the player. The turret, just like the non-player agents, are controlled with spiking neuron output. Same controls as FollowExample. There is no end. Being hit by the projectile does nothing and there is no way to win.
 
-`make gridwar`: GridWarExample shows how "energy" from a single spiking neuron can spread throughout a lattice network. The visual is comprised of N grids for N starting locations. Each grid (shown in a different color) inhibits activity in the other grids. Each growth will fight the others for space. External input is provided to the starting neuron for 1000 time steps after which it is removed and persistent activity is maintained through recurrent excitation.
+`make gridwar`: GridWarExample shows how "energy" from a single spiking neuron can spread throughout a lattice network and how sufficient energy is sellf-sustaining. The visual is comprised of N grids for N starting locations. Each grid (shown in a different color) inhibits activity in the other grids. Each growth will fight the others for space, hence the name. External input is provided to an initial neuron in each grid for 1000 time steps after which it is removed and persistent activity is maintained through recurrent excitation.
+
+## Dependencies
+
+The examples use SFML as their graphics library. I recommend you install the latest version of SFML. If during compilation you receive warnings about deprecated SFML functions dealing with color, you have a slightly out of date version. I believe the version in the Ubuntu repo are slightly behind.
 
 ## Neuron Class
 The neuron class is an implementation of the Izhikevich neuron model. Instances of the neuron model are created by providing a template. Templates (see NTemplate class) provide the constants necessary to replicate various neuron types described in [Dynamical Systems in Neuroscience:

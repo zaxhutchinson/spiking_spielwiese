@@ -107,34 +107,6 @@ namespace spsp {
         uptr<uint64_t> post_spike_time;
     };
 
-    class ProtoSynapse : public SimpleSynapse {
-    public:
-        ProtoSynapse();
-        ProtoSynapse(double delta, uint64_t window);
-        virtual ~ProtoSynapse();
-
-        double GetMaturity() const;
-        void SetMaturity(double maturity);
-        double GetDelta() const;
-        void SetDelta(double delta);
-        uint64_t GetWindow() const;
-        void SetWindow(uint64_t window);
-        void AddSynapse(sptr<ProtoSynapse> synapse);
-
-    private:
-        void do_SetSignal(double signal) final;
-        void do_RegisterNewPreSpike(uint64_t time) final;
-        void do_RegisterNewPostSpike(uint64_t time) final;
-
-    private:
-
-        double maturity;
-        double delta;
-        uint64_t window;
-        lsptr<ProtoSynapse> dendritic_tree;
-
-    };
-
     class STDPSynapse : public SimpleSynapse {
     public:
         STDPSynapse();

@@ -129,65 +129,6 @@ namespace spsp {
     }
 
     /////////////////////////////////////////////////////////////////////////
-    // PROTO SYNAPSE DEFINITIONS
-    /////////////////////////////////////////////////////////////////////////
-    ProtoSynapse::ProtoSynapse() 
-        : SimpleSynapse() {
-        
-        type = SynapseType::PROTO;
-    }
-
-    ProtoSynapse::ProtoSynapse(double delta, uint64_t window)
-        : SimpleSynapse(weight,signal_history_size) {
-
-        type = SynapseType::PROTO;
-    }
-
-    ProtoSynapse::~ProtoSynapse() {
-
-    }
-
-    double ProtoSynapse::GetMaturity() const {
-        return maturity;
-    }
-
-    void ProtoSynapse::SetMaturity(double maturity) {
-        this->maturity = maturity;
-    }
-
-    double ProtoSynapse::GetDelta() const {
-        return delta;
-    }
-    void ProtoSynapse::SetDelta(double delta) {
-        this->delta = delta;
-    }
-    uint64_t ProtoSynapse::GetWindow() const {
-        return window;
-    }
-    void ProtoSynapse::SetWindow(uint64_t window) {
-        this->window = window;
-    }
-
-    void ProtoSynapse::AddSynapse(sptr<ProtoSynapse> synapse) {
-        dendritic_tree.push_back(synapse);
-    }
-
-    void ProtoSynapse::do_SetSignal(double signal) {
-        time = (time+1)%signal_history_size;
-        this->signal[time]=signal*weight;
-    }
-
-    void ProtoSynapse::do_RegisterNewPreSpike(uint64_t time) {
-        if(pre_spike_time) *pre_spike_time = time;
-        else pre_spike_time = std::make_unique<uint64_t>(time);
-    }
-
-    void ProtoSynapse::do_RegisterNewPostSpike(uint64_t time) {
-        if(post_spike_time) *post_spike_time = time;
-        else post_spike_time = std::make_unique<uint64_t>(time);
-    }
-
-    /////////////////////////////////////////////////////////////////////////
     // STDP SYNAPSE DEFINITIONS
     /////////////////////////////////////////////////////////////////////////
     STDPSynapse::STDPSynapse() 
