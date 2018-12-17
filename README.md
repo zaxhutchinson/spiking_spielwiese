@@ -25,7 +25,7 @@ A makefile is included. You can build the current examples using:
 
 ## Dependencies
 
-The examples use SFML as their graphics library. I recommend you install the latest version of SFML. If during compilation you receive warnings about deprecated SFML functions dealing with color, you have a slightly out of date version. I believe the version in the Ubuntu repo are slightly behind.
+The examples use SFML as their graphics library. I recommend you install the latest version of SFML. If during compilation you receive warnings about deprecated SFML functions dealing with color, you have a slightly out of date version. I believe the version in the Ubuntu repo is slightly behind.
 
 ## Neuron Class
 The neuron class is an implementation of the Izhikevich neuron model. Instances of the neuron model are created by providing a template. Templates (see NTemplate class) provide the constants necessary to replicate various neuron types described in [Dynamical Systems in Neuroscience:
@@ -33,7 +33,7 @@ The Geometry of Excitability and Bursting by Eugene M. Izhikevich 2007](https://
 
 Apart from just replicating the voltage and reset equations, other aspects of incorporating neurons into a network must be attended to and that is the main benefit of the library.
 
-Action potential output is modeled through an alpha function. The neuron model keeps a list of recent spike times and uses their age to determine the output, overlaying each alpha additively. The length of the alpha function corresponds to the constant `alphabase`. A smaller base value creates a shorter action potential. The age of each spike is maintained until `max_spike_age` after which it is discarded. Currently, `max_spike_age` is `10*alphabase`.
+Action potential output is modeled through an alpha function. The neuron model keeps a list of recent spike times and uses their age to determine the output, overlaying each alpha additively. The length of the alpha function corresponds to the constant `alphabase`. A smaller base value creates a shorter action potential. The age of each spike is maintained until `max_spike_age` after which it is discarded. Currently, `max_spike_age` is `10*alphabase` and is set in the Neuron's constructor. [COMMENT: I've a mind to move `max_spike_age` to the templates; however, `10*alphabase` covers the smearing of an action potential just fine. Presently, the only situation I envision where this would be insufficient is one where the program does not want smearing but a single blip.]
 
 Each Neuron object stores lists of input and output synapses. Each call to update sums the values of all its input synapses, updates itself and pushes its current output into each of the output synapses.
 
