@@ -40,9 +40,19 @@ Each Neuron object stores lists of input and output synapses. Each call to updat
 Each Neuron object also has the capability to introduce random noise (uniform or normal) into its update method.
 
 ## NT Struct
-Variables needed to initialize a new neuron object to particular prototype.
+Variables needed to initialize a new neuron object to particular prototype. As mentioned above the set of neuron types provided by SPSP come from Eugene Izhikevich's book. They are designed to mimic real-world neuron types. However, since the aim of SPSP is to open spiking neuron models to other uses, there is no reason new, unreal types cannot be created.
 
-NOTE: `baseline` provides a way to give a neuron object an always on current.
+### Baseline
+`baseline` provides a way to give a neuron object an always on current. The following is a list of baseline values for several of the neuron types that are just below the value which would produce a spike. This is not to say, these values will never produce a spike. Over longer periods of exposure, they might. The number in parenthesis will produce approximately one spike per second.
+
+* Regular Spiking:     51.0  (~52)
+* Intrinsic Bursting:  346.0 (~347 or 348)
+* Chattering:          160.0 (~161)
+* Medium Spiny:        305.0 (306)
+* Relay:               40.0  (~41)
+* Fast Spiking:        120.0 (~125) Slightly oscillatory near the bifurfaction. Once it begins to spike, a value lower than 125 will sustain the behavior.
+
+These values can be used to set a neuron just below the bifurcation point so that very small values will cause it to spike. These values were gathering through testing with the provided `trace_example`. A more thorough treatment of phase spaces, bifurcations and behavior can be found in the reference above.
 
 ## Synapse Classes
 The Synapse class is an interface following the NVI pattern. Its client is the Neuron class and provides all the functionality required by that class.
