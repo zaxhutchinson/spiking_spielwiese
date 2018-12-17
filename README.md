@@ -43,7 +43,7 @@ Each Neuron object also has the capability to introduce random noise (uniform or
 Variables needed to initialize a new neuron object to particular prototype. As mentioned above the set of neuron types provided by SPSP come from Eugene Izhikevich's book. They are designed to mimic real-world neuron types. However, since the aim of SPSP is to open spiking neuron models to other uses, there is no reason new, unreal types cannot be created.
 
 ### Baseline
-`baseline` provides a way to give a neuron object an always on current. The following is a list of baseline values for several of the neuron types that are just below the value which would produce a spike. This is not to say, these values will never produce a spike. Over longer periods of exposure, they might. The number in parenthesis will produce approximately one spike per second.
+`baseline` provides a way to give a neuron object an always on current. The following is a list of baseline values for several of the neuron types that are just below the value which would produce a spike. This is not to say, these values will never produce a spike. Over longer periods of exposure, they might. The number in parenthesis will produce at least one spike per second.
 
 * Regular Spiking:     51.0  (~52)
 * Intrinsic Bursting:  346.0 (~347 or 348)
