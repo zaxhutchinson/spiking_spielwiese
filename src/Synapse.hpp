@@ -150,8 +150,6 @@ namespace spsp {
         virtual void SetCount(double count);
         virtual sptr<double> GetCountPtr() const;
         virtual void SetCountPtr(sptr<double> count);
-        virtual bool GetHasSignal() const;
-        virtual void SetHasSignal(bool has_signal);
 
     protected:
         SynapseType do_GetType() const final;
@@ -165,7 +163,6 @@ namespace spsp {
     protected:
         SynapseType type;
         bool active;
-        bool has_signal;
         double weight;
         sptr<double> count;
     };

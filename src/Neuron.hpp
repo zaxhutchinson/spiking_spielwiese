@@ -60,6 +60,7 @@ namespace spsp {
 
     private:
         double v;
+        double v_prev;
         double u;
         double cap;
         double vr;

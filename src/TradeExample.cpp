@@ -21,31 +21,41 @@ using namespace spsp;
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
-class ImpExp {
-public:
-    uptr<Neuron> n_export;
-    uptr<Neuron> n_import;
-    uptr<Neuron> n_production;
-    uptr<Neuron> n_consumption;
-    uptr<Neuron> n_trade;
-    double s_production;
-    double s_consumption;
-    double s_trade_deficit;
-    double s_trade_surplus;
-
+struct Resource {
+    double output;
+    std::string material_name;
 };
-class Town {
-public:
-    double Production;
-    double Consumption;
-    double Export;
-    double Import;
-    double Trade;
 
-    sptr<Synapse> syn_exp_trade;
-    sptr<Synapse> syn_imp_trade;
+struct Warehouse;
+struct Mine {
+    float x;
+    float y;
+    sptr<Neuron> miners;
+    sptr<SimpleSynapse> operations;
+    sptr<PCSynapse> warehouse;
+    sptr<Resource> resource;
 
+    Mine(sptr<NeuronTemplates> nt, sptr<Resource> res) {
+        resource = res;
+        miners = std::make_shared<Neuron>(nt->GetNeuronTemplate("RegularSpiking"));
+        operations = std::make_shared<SimpleSynapse>(1.0);
+        miners->AddInputSynapse(operations);
+    }
 
+    void Update() {
+        operations->SetSignal(resource->output);
+    }
+    void ChangeOperationAmount(double amt) {
+        operations->SetWeight(amt);
+    }
+    void SetWarehouse(sptr<PCSynapse> wh) {
+        warehouse = wh;
+    }
+};
+struct Warehouse {
+    float x;
+    float y;
+    lsptr<PCSynapse> materials;
 };
 
 ///////////////////////////////////////////////////////////////////

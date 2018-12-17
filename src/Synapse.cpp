@@ -225,11 +225,11 @@ namespace spsp {
 
     CountingSynapse::CountingSynapse() 
         : type(SynapseType::COUNTING), active(true), weight(1.0), 
-            count(std::make_shared<double>(0.0)), has_signal(false) {
+            count(std::make_shared<double>(0.0)) {
     }
     CountingSynapse::CountingSynapse(double weight, sptr<double> count)
         : type(SynapseType::COUNTING), active(true), weight(weight), 
-            count(count), has_signal(false) {
+            count(count) {
     
     }
     CountingSynapse::~CountingSynapse() {
@@ -247,12 +247,6 @@ namespace spsp {
     void CountingSynapse::SetCountPtr(sptr<double> count) {
         this->count = count;
     }
-    bool CountingSynapse::GetHasSignal() const {
-        return has_signal;
-    }
-    void CountingSynapse::SetHasSignal(bool has_signal) {
-        this->has_signal = has_signal;
-    }
     SynapseType CountingSynapse::do_GetType() const {
         return type;
     }
@@ -263,8 +257,7 @@ namespace spsp {
         this->active = active;
     }
     double CountingSynapse::do_GetSignal(uint64_t delay) const {
-        if(has_signal) return *count;
-        else return 0.0;
+        return *count;
     }
     void CountingSynapse::do_SetSignal(double signal) {
         // Do nothing

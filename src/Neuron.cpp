@@ -18,9 +18,10 @@ namespace spsp {
         d = nt->d;
         baseline = nt->baseline;
         v = nt->c;
+        v_prev = nt->c;
         u = nt->d;
 
-        alphabase = 10.0;
+        alphabase = 1.0;
         max_spike_age = alphabase*10;
 
         EnableNoise(NoiseType::None);
@@ -32,13 +33,14 @@ namespace spsp {
 
     void Neuron::Update(uint64_t time) {
         
-
-        v = v + (k * (v-vr) * (v-vt) - u +
+        // Euler Method
+        v = v_prev + (k * (v_prev-vr) * (v_prev-vt) - u +
             baseline + Input() + noise()) / cap;
-        u = u + a * (b *(v-vr) - u);
+        u = u + a * (b *(v_prev-vr) - u);
+        v_prev = v;
 
         if(v >= vpeak) {
-            v = c;
+            v_prev = c;
             u = u + d;
             UpdateSpikes(true);
             RegisterSpike(time);
