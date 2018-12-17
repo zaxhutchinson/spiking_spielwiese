@@ -16,6 +16,7 @@ namespace spsp {
         nt->c=-50.0;
         nt->d=100.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name] = nt;
 
         // Chattering
@@ -31,6 +32,7 @@ namespace spsp {
         nt->c=-40.0;
         nt->d=150.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name]=nt;
 
         // Medium Spiny Neuron
@@ -46,6 +48,7 @@ namespace spsp {
         nt->c=-55.0;
         nt->d=150.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name] = nt;
 
         // Relay
@@ -61,6 +64,7 @@ namespace spsp {
         nt->c=-50.0;
         nt->d=100.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name] = nt;
 
         // Fast Spiking
@@ -76,6 +80,7 @@ namespace spsp {
         nt->c=-55.0;
         nt->d=200.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name] = nt;
 
         // Reticular Thalamic
@@ -91,6 +96,7 @@ namespace spsp {
         nt->c=-55.0;
         nt->d=50.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name] = nt;
 
         // Intrinsic Bursting
@@ -106,6 +112,7 @@ namespace spsp {
         nt->c=-56.0;
         nt->d=130.0;
         nt->baseline=0.0;
+        nt->alphabase=1.0;
         neuron_templates[nt->name] = nt;
     }
 
@@ -131,7 +138,8 @@ namespace spsp {
                             double b,
                             double c,
                             double d,
-                            double baseline                        
+                            double baseline,
+                            double alphabase                        
     ) {
         sptr<NT> nt = std::make_shared<NT>();
         nt->cap = cap;
@@ -144,6 +152,7 @@ namespace spsp {
         nt->c = c;
         nt->d = d;
         nt->baseline = baseline;
+        nt->alphabase = alphabase;
 
         return neuron_templates.emplace(nt->name, nt).second;
     }

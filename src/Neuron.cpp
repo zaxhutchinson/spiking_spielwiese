@@ -20,8 +20,7 @@ namespace spsp {
         v = nt->c;
         v_prev = nt->c;
         u = nt->d;
-
-        alphabase = 1.0;
+        alphabase = nt->alphabase;
         max_spike_age = alphabase*10;
 
         EnableNoise(NoiseType::None);

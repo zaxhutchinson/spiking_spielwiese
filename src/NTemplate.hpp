@@ -31,6 +31,7 @@ namespace spsp {
         double c;
         double d;
         double baseline;
+        double alphabase;
     };
 
     struct NeuronTemplates {
@@ -49,7 +50,8 @@ namespace spsp {
                                 double b,
                                 double c,
                                 double d,
-                                double baseline                        
+                                double baseline,
+                                double alphabase                        
         );
     };
 }
