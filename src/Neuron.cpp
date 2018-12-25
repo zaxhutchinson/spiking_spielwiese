@@ -26,6 +26,38 @@ namespace spsp {
         EnableNoise(NoiseType::None);
     }
 
+    Neuron::Neuron(Neuron && other) {
+        *this = std::move(other);
+    }
+    Neuron & Neuron::operator=(Neuron && other) {
+        if(this != &other) {
+            v=other.v;
+            v_prev=other.v_prev;
+            u=other.u;
+            cap=other.cap;
+            vr=other.vr;
+            vt=other.vt;
+            k=other.k;
+            vpeak=other.vpeak;
+            a=other.a;
+            b=other.b;
+            c=other.c;
+            d=other.d;
+            baseline=other.baseline;
+            alphabase=other.alphabase;
+            spike_age_buffer=other.spike_age_buffer;
+            max_spike_age=other.max_spike_age;
+            current_output=other.current_output;
+            i_syn=other.i_syn; other.i_syn.clear();
+            o_syn=other.o_syn; other.o_syn.clear();
+            noise=other.noise; 
+            uniform_dist=other.uniform_dist;
+            normal_dist=other.normal_dist;
+            rng=other.rng; other.rng=nullptr;
+        }
+        return *this;
+    }
+
     void Neuron::Reset() {
         spike_age_buffer.clear();
     }

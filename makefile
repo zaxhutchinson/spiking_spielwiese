@@ -14,7 +14,14 @@ trace: neuron ntemplate synapse trace_example
 		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
 		$(OBJDIR)/TraceExample.o \
 		-o trace_example \
-		$(LFLAGS) 
+		$(LFLAGS)
+
+bee: neuron ntemplate synapse bee_example
+	$(CC) \
+		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
+		$(OBJDIR)/BeeExample.o \
+		-o bee_example \
+		$(LFLAGS)
 
 follow: neuron ntemplate synapse follow_example
 	$(CC) \
@@ -41,6 +48,11 @@ target_example: $(OBJDIR)/TargetExample.o
 
 $(OBJDIR)/TargetExample.o: $(SRCDIR)/TargetExample.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/TargetExample.cpp -o $(OBJDIR)/TargetExample.o
+
+bee_example: $(OBJDIR)/BeeExample.o
+
+$(OBJDIR)/BeeExample.o: $(SRCDIR)/BeeExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/BeeExample.cpp -o $(OBJDIR)/BeeExample.o
 
 gridwar_example: $(OBJDIR)/GridWarExample.o
 

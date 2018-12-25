@@ -137,7 +137,6 @@ namespace spsp {
         uint64_t pre_learn_window;
         double post_learn_rate;
         double pre_learn_rate;
-
     };
 
     class CountingSynapse : public Synapse {

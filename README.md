@@ -23,6 +23,8 @@ A makefile is included. You can build the current examples using:
 
 `make gridwar`: GridWarExample shows how "energy" from a single spiking neuron can spread throughout a lattice network and how sufficient energy is sellf-sustaining. The visual is comprised of N grids for N starting locations. Each grid (shown in a different color) inhibits activity in the other grids. Each growth will fight the others for space, hence the name. External input is provided to an initial neuron in each grid for 1000 time steps after which it is removed and persistent activity is maintained through recurrent excitation.
 
+`make bee`: BeeDanceExample is a modified version of the follow example. Here each bee is given a set of other bees which it follows. It is set to produce a "conga line" pattern. Use PAGE UP and PAGE DOWN to zoom in and out, and LEFT, RIGHT, UP and DOWN arrows to shift the display. L will display lines from a bee to its leaders and LEFT BRACKET and RIGHT BRACKET will cycle through which bee's leaders are displayed. Play around with the values for number of bees, number of leaders, alphabase, speed, and bee synapse strength to see different behavior. Hint: more leaders creates a simpler pattern, while fewer creates a more complex pattern. It is set to 15. Run and wait for the pattern to come together. Run again set to 10. Repeat set to 5.
+
 ## Dependencies
 
 The examples use SFML as their graphics library. I recommend you install the latest version of SFML. If during compilation you receive warnings about deprecated SFML functions dealing with color, you have a slightly out of date version. I believe the version in the Ubuntu repo is slightly behind.

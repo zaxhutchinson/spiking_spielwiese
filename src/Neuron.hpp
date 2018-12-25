@@ -26,6 +26,12 @@ namespace spsp {
     public:
         Neuron();
         Neuron(sptr<NT> nt); // Ctor to use
+        // Copy Ctor and assignment is disallowed
+        Neuron(const Neuron & other) = delete;
+        Neuron & operator=(const Neuron & other) = delete;
+        // Move enabled. Note: after op, rhs is not valid.
+        Neuron(Neuron && other);
+        Neuron & operator=(Neuron && other);
 
         // Places a neuron object back into its original state.
         // Does nothing to associated synapse objects.
