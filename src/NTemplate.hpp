@@ -37,6 +37,7 @@ namespace spsp {
     struct NeuronTemplates {
         std::map<std::string,sptr<NT>> neuron_templates;
 
+        NeuronTemplates();
         bool LoadDefaultTemplates();
         sptr<NT> GetNeuronTemplate(std::string name);
         bool AddNeuronTemplate(sptr<NT> nt);

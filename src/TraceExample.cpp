@@ -114,7 +114,6 @@ int main(int argc, char**argv) {
     double out = 0.0;
 
     NeuronTemplates templates;
-    templates.LoadDefaultTemplates();
 
     sptr<Network> network = std::make_shared<Network>();
     BuildNetwork(network,templates,nt_index);

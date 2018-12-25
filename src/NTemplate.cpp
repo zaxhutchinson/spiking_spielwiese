@@ -2,6 +2,10 @@
 
 namespace spsp {
 
+    NeuronTemplates::NeuronTemplates() {
+        LoadDefaultTemplates();
+    }
+
     bool NeuronTemplates::LoadDefaultTemplates() {
         // Regular Spiking
         sptr<NT> nt = std::make_shared<NT>();

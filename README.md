@@ -29,6 +29,33 @@ A makefile is included. You can build the current examples using:
 
 The examples use SFML as their graphics library. I recommend you install the latest version of SFML. If during compilation you receive warnings about deprecated SFML functions dealing with color, you have a slightly out of date version. I believe the version in the Ubuntu repo is slightly behind.
 
+## Basic Tutorial
+First, load the neuron templates by creating an instance of the NeuronTemplate class. Use this object to provide data to new neurons using the GetNeuronTemplate( neuron_name ) method.
+
+Creating Neuron objects is as easy as providing the neuron constructor with a shared_ptr to an NT object. For example, the code below creates two neuron objects.
+
+```
+NeuronTemplates nt;
+Neuron pre_neuron(nt.GetNeuronTemplate("RegularSpiking"));
+Neuron post_neuron(nt.GetNeuronTemplate("RegularSpiking"));
+```
+
+See NTemplate.cpp for the names of the different neuron models.
+
+Synapses should be created as std::shared_ptrs due to the fact that Neuron objects only accept shared_ptrs. There are various Synapse types. I suggest starting with the SimpleSynapse class. Instances can be created by giving the constructor the desired weight. A synaptic weight is simply a scalar to the output of the pre-synaptic neuron's alpha function. Finally add the synapse to an existing neuron as either that Neuron's input or output.
+
+Using the previous example, we create a SimpleSynapse and connect it to the two neurons. Notice that the new synapse accepts the output of the pre_neuron and provides input to the post_neuron.
+
+```
+std::shared_ptr<Synapse> synapse = std::make_shared<SimpleSynapse>( weight );
+post_neuron.AddInputSynapse(synapse);
+pre_neuron.AddOutputSynapse(synapse);
+```
+
+Finally, to update a neuron's state call its Update( time ) method. Time is a 64-bit unsigned int. Update retrieves all synaptic input, updates the neuron model and pushes output to all outgoing synapses.
+
+Spiking Spielwiese has the ability to provide either uniformly or normally distributed noise to the neuron model. By default noise is off. You can turn it on using the EnableNoise method. If on, random noise is sampled each time update is called and is counted as input to the model.
+
 ## Neuron Class
 The neuron class is an implementation of the Izhikevich neuron model. Instances of the neuron model are created by providing a template. Templates (see NTemplate class) provide the constants necessary to replicate various neuron types described in [Dynamical Systems in Neuroscience:
 The Geometry of Excitability and Bursting by Eugene M. Izhikevich 2007](https://www.izhikevich.org/publications/dsn/index.htm). Many of the neuron types are represented in this project.
