@@ -5,7 +5,6 @@ namespace spsp {
     /////////////////////////////////////////////////////////////////////////
     Synapse::Synapse() {}
     SynapseType Synapse::GetType() const { return do_GetType(); }
-    void Synapse::SetType(SynapseType type) { do_SetType(type); }
     bool Synapse::GetActive() const { return do_GetActive(); }
     void Synapse::SetActive(bool active) { do_SetActive(active); }
     double Synapse::GetSignal(uint64_t delay) const { return do_GetSignal(delay); }
@@ -93,10 +92,6 @@ namespace spsp {
         return type;
     }
 
-    void SimpleSynapse::do_SetType(SynapseType type) {
-        this->type = type;
-    }
-
     bool SimpleSynapse::do_GetActive() const { 
         return active; 
     }
@@ -137,9 +132,10 @@ namespace spsp {
         type=SynapseType::STDP;
     }   
 
-    STDPSynapse::STDPSynapse(double weight, uint64_t signal_history_size) 
+    STDPSynapse::STDPSynapse(double strength, double weight, uint64_t signal_history_size) 
         : SimpleSynapse(weight,signal_history_size) {
         
+        this->strength = strength;
         type=SynapseType::STDP;
 
     }
@@ -246,6 +242,12 @@ namespace spsp {
     }
     void CountingSynapse::SetCountPtr(sptr<double> count) {
         this->count = count;
+    }
+    double CountingSynapse::GetWeight() const {
+        return weight;
+    }
+    void CountingSynapse::SetWeight(double weight) {
+        this->weight = weight;
     }
     SynapseType CountingSynapse::do_GetType() const {
         return type;

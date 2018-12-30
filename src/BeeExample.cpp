@@ -26,7 +26,7 @@ using namespace spsp;
 const float WIDTH=1000.0f;
 const float HEIGHT=1000.0f;
 const int NUM_BEES=100;
-const int NUM_LEADERS=7;
+const int NUM_LEADERS=10;
 const double BEE_SYN_STRENGTH=5.0;
 const float SPEED=10.0f;
 const float SHIFT_AMT = 100.0f;

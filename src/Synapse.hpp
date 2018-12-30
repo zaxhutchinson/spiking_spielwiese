@@ -40,7 +40,6 @@ namespace spsp {
         Synapse & operator=(Synapse const &) = delete;
 
         SynapseType GetType() const;
-        void SetType(SynapseType type);
         bool GetActive() const;
         void SetActive(bool active);
         double GetSignal(uint64_t delay=0) const;
@@ -53,7 +52,6 @@ namespace spsp {
 
     private:
         virtual SynapseType do_GetType() const = 0;
-        virtual void do_SetType(SynapseType type) = 0;
         virtual bool do_GetActive() const = 0;
         virtual void do_SetActive(bool active) = 0;
         virtual double do_GetSignal(uint64_t delay=0) const = 0;
@@ -88,7 +86,6 @@ namespace spsp {
 
     protected:
         SynapseType do_GetType() const final;
-        void do_SetType(SynapseType type) final;
         bool do_GetActive() const final;
         void do_SetActive(bool active) final;
         double do_GetSignal(uint64_t delay=0) const final;
@@ -110,7 +107,7 @@ namespace spsp {
     class STDPSynapse : public SimpleSynapse {
     public:
         STDPSynapse();
-        STDPSynapse(double weight, uint64_t signal_history_size=1);
+        STDPSynapse(double strength, double weight, uint64_t signal_history_size=1);
         virtual ~STDPSynapse();
 
         
@@ -149,6 +146,8 @@ namespace spsp {
         virtual void SetCount(double count);
         virtual sptr<double> GetCountPtr() const;
         virtual void SetCountPtr(sptr<double> count);
+        virtual double GetWeight() const;
+        virtual void SetWeight(double weight);
 
     protected:
         SynapseType do_GetType() const final;

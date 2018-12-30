@@ -16,6 +16,13 @@ trace: neuron ntemplate synapse trace_example
 		-o trace_example \
 		$(LFLAGS)
 
+trade: neuron ntemplate synapse trade_example
+	$(CC) \
+		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
+		$(OBJDIR)/TradeExample.o \
+		-o trade_example \
+		$(LFLAGS)
+
 bee: neuron ntemplate synapse bee_example
 	$(CC) \
 		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
@@ -44,10 +51,27 @@ target: neuron ntemplate synapse target_example
 		-o target_example \
 		$(LFLAGS)
 
+path: neuron ntemplate synapse bresenham path_example
+	$(CC) \
+		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o $(OBJDIR)/bresenham.o \
+		$(OBJDIR)/PathExample.o \
+		-o path_example \
+		$(LFLAGS)
+
 target_example: $(OBJDIR)/TargetExample.o
 
 $(OBJDIR)/TargetExample.o: $(SRCDIR)/TargetExample.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/TargetExample.cpp -o $(OBJDIR)/TargetExample.o
+
+path_example: $(OBJDIR)/PathExample.o
+
+$(OBJDIR)/PathExample.o: $(SRCDIR)/PathExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/PathExample.cpp -o $(OBJDIR)/PathExample.o
+
+trade_example: $(OBJDIR)/TradeExample.o
+
+$(OBJDIR)/TradeExample.o: $(SRCDIR)/TradeExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/TradeExample.cpp -o $(OBJDIR)/TradeExample.o
 
 bee_example: $(OBJDIR)/BeeExample.o
 
@@ -83,6 +107,11 @@ synapse: $(OBJDIR)/Synapse.o
 
 $(OBJDIR)/Synapse.o: $(SRCDIR)/Synapse.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/Synapse.cpp -o $(OBJDIR)/Synapse.o
+
+bresenham: $(OBJDIR)/bresenham.o
+
+$(OBJDIR)/bresenham.o: $(SRCDIR)/bresenham.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/bresenham.cpp -o $(OBJDIR)/bresenham.o
 
 
 clean:

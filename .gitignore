@@ -36,6 +36,8 @@
 /build
 /old
 /.vscode
+/test
+/notes
 
 # Example Executables
 target_example
@@ -44,3 +46,4 @@ trade_example
 trace_example
 follow_example
 bee_example
+path_example
