@@ -2,6 +2,8 @@
 
 Spiking Spielwiese [SPSP] is a modern C++ library created to simplify the addition of Izhikevich spiking neuron models to larger projects. My hope is that this will facilitate their use in areas outside Computational Neuroscience and Artificial Intelligence research, such as video games and simulations.
 
+I have started posting animated gifs of the examples on my ResearchGate project page: https://www.researchgate.net/project/Spiking-Spielwiese
+
 As I work on the library I am adding examples both to test and to demonstrate my research into extending their usefulness. Presently, both library and examples are lumped together. The library files consist of (cpp/hpp):
 
 * NTemplate
