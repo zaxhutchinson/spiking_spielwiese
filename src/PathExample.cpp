@@ -25,28 +25,34 @@ struct Obstacle;
 ///////////////////////////////////////////////////////////////////
 const float WIDTH=1000.0f;
 const float HEIGHT=1000.0f;
-const double FORWARD_IMPULSE_WEIGHT=100.0;
-const double FORWARD_EYE_WEIGHT=-50.0;
-const double LEFT_EYE_WEIGHT=100.0;
-const double RIGHT_EYE_WEIGHT=100.0;
-const double GOAL_LEFT_WEIGHT=100.0;
-const double GOAL_RIGHT_WEIGHT=100.0;
-const double INH_FL_WEIGHT=-50.0;
-const double INH_FR_WEIGHT=-50.0;
-const float LEFT_EYE_OFFSET = -M_PI/3.0;
-const float RIGHT_EYE_OFFSET = M_PI/3.0;
+const double FORWARD_IMPULSE_WEIGHT=400.0;
+const double FORWARD_IMPACT_WEIGHT=1000.0;
+const double FORWARD_EYE_WEIGHT=-300.0;
+const double LEFT_EYE_WEIGHT=400.0;
+const double RIGHT_EYE_WEIGHT=400.0;
+const double GOAL_LEFT_WEIGHT=200.0;
+const double GOAL_RIGHT_WEIGHT=200.0;
+const double INH_FL_WEIGHT=-200.0;
+const double INH_FR_WEIGHT=-200.0;
 const float MAX_SIGHT = 1000.0f;
 const float EYE_INPUT_WEIGHT = 1.0f;
-const float AGENT_SPEED = 20.0f;
-const int NUM_OBSTACLES = 15;
-const double ALPHABASE = 20.0;
+const float AGENT_SPEED = 500.0f;
+const int NUM_OBSTACLES = 250;
+const double ALPHABASE = 2.0;
 const float SHIFT_AMT = 100.0f;
+const int NUM_SIDE_EYES=12;
+const float LEFT_EYE_SPACING = -M_PI/36.0; // 5 degrees
+const float RIGHT_EYE_SPACING = M_PI/36.0; // 5 degrees
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y);
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y, sf::Color color);
 void ShiftObjects(float x, float y, Goal & goal, Agent & agent, vec<Obstacle> & obstacles);
+float GetMaxSight(int position);
+
+void ObstacleScenario000(std::mt19937_64 & rng, vec<Obstacle> & obstacles);
+void ObstacleScenario001(std::mt19937_64 & rng, vec<Obstacle> & obstacles);
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
@@ -80,10 +86,7 @@ struct Line {
                 col.x = (a.x + t * (b.x-a.x));
                 col.y = (a.y + t * (b.y-a.y));
                 return true;
-            // } else if(u >= 0.0f && u <= 1.0f) {
-            //     col.x = (c.x + u * (d.x-c.x));
-            //     col.y = (c.y + u * (d.y-c.y));
-            //     return true;
+
             } else {
                 return false;
             }
@@ -118,7 +121,11 @@ struct Rect : sf::RectangleShape {
         setPosition(tl.x/scale,tl.y/scale);
         window.draw(*this);
     }
-
+    bool ContainsPoint(Point point) {
+        if(tl.x <= point.x && tl.y <= point.y &&
+            br.x >= point.x && br.y >= point.y) return true;
+        else return false;
+    }
 };
 struct Obstacle : public Rect {
     
@@ -126,8 +133,7 @@ struct Obstacle : public Rect {
         : Rect(topleft, bottomright)
     {}
 
-    bool CheckCollision(Point origin, Point end, Point & collision) {
-        float distance = MAX_SIGHT;
+    bool CheckCollision(Point origin, Point end, Point & collision, float distance) {
 
         Point tempCollision;
         bool collides = false;
@@ -197,24 +203,27 @@ struct Agent : public sf::CircleShape {
     float radius;
     float vx;
     float vy;
+    bool close;
     Eye eye_forward;
-    Eye eye_left;
-    Eye eye_right;
+    vec<Eye> eyes_left;
+    vec<Eye> eyes_right;
+
+    vec<float> left_eye_offsets;
+    vec<float> right_eye_offsets;
 
     sptr<Synapse> forward_impulse;
+    sptr<Synapse> forward_impact_left;
+    sptr<Synapse> forward_impact_right;
 
-    sptr<Synapse> goal_left;
-    sptr<Synapse> goal_right;
+    vsptr<Synapse> goals_left;
+    vsptr<Synapse> goals_right;
 
-    sptr<Synapse> inh_forward_left;
-    sptr<Synapse> inh_forward_right;
+    uptr<Neuron> neuron_forward;
+    vuptr<Neuron> neurons_left;
+    vuptr<Neuron> neurons_right;
 
-    uptr<Neuron> move_forward;
-    uptr<Neuron> turn_left;
-    uptr<Neuron> turn_right;
-
-    Point eye_left_max;
-    Point eye_right_max;
+    vec<Point> eyes_left_max;
+    vec<Point> eyes_right_max;
     Point eye_forward_max;
 
     Agent(std::mt19937_64 & rng, float _x, float _y, float _radius,
@@ -222,102 +231,162 @@ struct Agent : public sf::CircleShape {
         :sf::CircleShape(_radius), radius(_radius)
     {
         loc = Point(_x,_y);
-        //setOrigin(loc.x,loc.y);
+        setOrigin(8.0f,8.0f);
         setPosition(sf::Vector2f(loc.x,loc.y));
         setFillColor(sf::Color::Blue);
         
-        eye_forward.angle=0.0f;
-        Turn(0.0f);
+        close = false;
 
         forward_impulse = std::make_shared<SimpleSynapse>(FORWARD_IMPULSE_WEIGHT);
         forward_impulse->SetSignal(1.0);
 
+        forward_impact_left = std::make_shared<SimpleSynapse>(0.0);
+        forward_impact_right = std::make_shared<SimpleSynapse>(0.0);
+
         eye_forward.nerve = std::make_shared<SimpleSynapse>(FORWARD_EYE_WEIGHT);
-        eye_left.nerve = std::make_shared<SimpleSynapse>(LEFT_EYE_WEIGHT);
-        eye_right.nerve = std::make_shared<SimpleSynapse>(RIGHT_EYE_WEIGHT);
+        float leye_offset = LEFT_EYE_SPACING;
+        float reye_offset = RIGHT_EYE_SPACING;
+        for(int i = 0; i < NUM_SIDE_EYES; i++) {
 
-        goal_left = std::make_shared<SimpleSynapse>(GOAL_LEFT_WEIGHT);
-        goal_right = std::make_shared<SimpleSynapse>(GOAL_RIGHT_WEIGHT);
+            // MAKE LEFT EYE
+            Eye le;
+            le.nerve = std::make_shared<SimpleSynapse>(LEFT_EYE_WEIGHT/(i+1));
+            eyes_left.push_back(le);
 
-        inh_forward_left = std::make_shared<SimpleSynapse>(INH_FL_WEIGHT);
-        inh_forward_right = std::make_shared<SimpleSynapse>(INH_FR_WEIGHT);
+            sptr<SimpleSynapse> lgoal_syn = std::make_shared<SimpleSynapse>(GOAL_LEFT_WEIGHT/(NUM_SIDE_EYES-i));
+            goals_left.push_back(lgoal_syn);
 
-        move_forward = std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking"));
-        turn_left = std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking"));
-        turn_right = std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking"));
+            neurons_left.push_back(std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking")));
+            neurons_left[i]->SetAlphaBase(ALPHABASE);
+            neurons_left[i]->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
 
-        move_forward->SetAlphaBase(40.0);
-        turn_left->SetAlphaBase(20.0);
-        turn_right->SetAlphaBase(20.0);
+            neurons_left[i]->AddInputSynapse(eyes_left[i].nerve);
+            neurons_left[i]->AddInputSynapse(goals_left[i]);
+            neurons_left[i]->AddInputSynapse(forward_impact_left);
 
-        turn_left->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
-        turn_right->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
+            left_eye_offsets.push_back(leye_offset);
+            leye_offset += LEFT_EYE_SPACING;
 
-        move_forward->AddInputSynapse(forward_impulse);
-        move_forward->AddInputSynapse(eye_forward.nerve);
-        move_forward->AddOutputSynapse(inh_forward_left);
-        move_forward->AddOutputSynapse(inh_forward_right);
+            eyes_left_max.push_back(Point(
+                loc.x+std::cos(eyes_left[i].angle)*GetMaxSight(i),
+                loc.y+std::sin(eyes_left[i].angle)*GetMaxSight(i)
+            ));
 
-        turn_left->AddInputSynapse(eye_left.nerve);
-        turn_left->AddInputSynapse(inh_forward_left);
-        turn_left->AddInputSynapse(goal_left);
+            // MAKE RIGHT EYE
+            Eye re;
+            re.nerve = std::make_shared<SimpleSynapse>(RIGHT_EYE_WEIGHT/(i+1));
+            eyes_right.push_back(re);
 
-        turn_right->AddInputSynapse(eye_right.nerve);
-        turn_right->AddInputSynapse(inh_forward_right);
-        turn_right->AddInputSynapse(goal_right);
+            sptr<SimpleSynapse> rgoal_syn = std::make_shared<SimpleSynapse>(GOAL_RIGHT_WEIGHT/(NUM_SIDE_EYES-i));
+            goals_right.push_back(rgoal_syn);
+
+            neurons_right.push_back(std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking")));
+            neurons_right[i]->SetAlphaBase(ALPHABASE);
+            neurons_right[i]->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
+
+            neurons_right[i]->AddInputSynapse(eyes_right[i].nerve);
+            neurons_right[i]->AddInputSynapse(goals_right[i]);
+            neurons_right[i]->AddInputSynapse(forward_impact_right);
+
+            right_eye_offsets.push_back(reye_offset);
+            reye_offset += RIGHT_EYE_SPACING;
+
+            eyes_right_max.push_back(Point(
+                loc.x+std::cos(eyes_right[i].angle)*GetMaxSight(i),
+                loc.y+std::sin(eyes_right[i].angle)*GetMaxSight(i)
+            ));
+        }
+
+
+        neuron_forward = std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking"));
+        neuron_forward->SetAlphaBase(ALPHABASE);
+
+        neuron_forward->AddInputSynapse(forward_impulse);
+        neuron_forward->AddInputSynapse(eye_forward.nerve);
+
+        eye_forward.angle=0.0f;
+        Turn(M_PI/4.0f);
     }
 
     void Turn(float amt) {
         eye_forward.angle += amt;
-        if(eye_forward.angle < -M_PI) eye_forward.angle+=2.0*M_PI;
-        if(eye_forward.angle > M_PI) eye_forward.angle-=2.0*M_PI;
-        eye_left.angle = eye_forward.angle+LEFT_EYE_OFFSET;
-        if(eye_left.angle < -M_PI) eye_left.angle+=2.0*M_PI;
-        if(eye_left.angle > M_PI) eye_left.angle-=2.0*M_PI;
-        eye_right.angle = eye_forward.angle+RIGHT_EYE_OFFSET,M_PI;
-        if(eye_right.angle < -M_PI) eye_right.angle+=2.0*M_PI;
-        if(eye_right.angle > M_PI) eye_right.angle-=2.0*M_PI;
+        //if(eye_forward.angle < -M_PI) eye_forward.angle+=2.0*M_PI;
+        //if(eye_forward.angle > M_PI) eye_forward.angle-=2.0*M_PI;
+
+        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+            eyes_left[i].angle = eye_forward.angle+left_eye_offsets[i];
+            //if(eyes_left[i].angle < -M_PI) eyes_left[i].angle+=2.0*M_PI;
+            //if(eyes_left[i].angle > M_PI) eyes_left[i].angle-=2.0*M_PI;
+
+            eyes_right[i].angle = eye_forward.angle+right_eye_offsets[i];
+            //if(eyes_right[i].angle < -M_PI) eyes_right[i].angle+=2.0*M_PI;
+            //if(eyes_right[i].angle > M_PI) eyes_right[i].angle-=2.0*M_PI;
+        }
+        
         heading = eye_forward.angle;
     }
 
     void Update(vec<Obstacle> & obstacles, Goal goal, float dt, uint64_t time) {
-        eye_left_max = Point(
-            loc.x+std::cos(eye_left.angle)*MAX_SIGHT,
-            loc.y+std::sin(eye_left.angle)*MAX_SIGHT
-        );
 
-        eye_right_max = Point(
-            loc.x+std::cos(eye_right.angle)*MAX_SIGHT,
-            loc.y+std::sin(eye_right.angle)*MAX_SIGHT
-        );
+        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+            eyes_left_max[i] = Point(
+                loc.x+std::cos(eyes_left[i].angle)*GetMaxSight(i),
+                loc.y+std::sin(eyes_left[i].angle)*GetMaxSight(i)
+            );
+
+            eyes_right_max[i] = Point(
+                loc.x+std::cos(eyes_right[i].angle)*GetMaxSight(i),
+                loc.y+std::sin(eyes_right[i].angle)*GetMaxSight(i)
+            );
+
+            float ldist=GetMaxSight(i);
+            float rdist=GetMaxSight(i);
+            for(vec<Obstacle>::iterator it = obstacles.begin(); it != obstacles.end();it++) {
+                Point lpoint_of_collision;
+                Point rpoint_of_collision;
+
+                if(it->CheckCollision(loc,eyes_left_max[i],lpoint_of_collision,GetMaxSight(i))) {
+                    if(Distance(loc,lpoint_of_collision)<ldist) {
+                        ldist = Distance(loc,lpoint_of_collision);
+                        eyes_left_max[i] = lpoint_of_collision;
+                    }
+                }
+
+                if(it->CheckCollision(loc,eyes_right_max[i],rpoint_of_collision,GetMaxSight(i))) {
+                    if(Distance(loc,rpoint_of_collision)<rdist) {
+                        rdist = Distance(loc,rpoint_of_collision);
+                        eyes_right_max[i] = rpoint_of_collision;
+                    }
+                }
+            }
+
+            float left_signal = ((1.0-rdist/GetMaxSight(i))+(ldist/GetMaxSight(i)))*EYE_INPUT_WEIGHT;
+            eyes_left[i].nerve->SetSignal(left_signal);
+
+            float right_signal = ((1.0-ldist/GetMaxSight(i))+(rdist/GetMaxSight(i)))*EYE_INPUT_WEIGHT;
+            eyes_right[i].nerve->SetSignal(right_signal);
+
+            angle_to_goal = std::atan2(goal.loc.y-loc.y, goal.loc.x-loc.x);
+            heading_correction = angle_to_goal-heading;
+            if(heading_correction > 0) goals_right[i]->SetSignal(heading_correction);
+            else if(heading_correction < 0) goals_left[i]->SetSignal(-heading_correction);
+
+        }
+
         eye_forward_max = Point(
-            loc.x+std::cos(eye_forward.angle)*MAX_SIGHT,
-            loc.y+std::sin(eye_forward.angle)*MAX_SIGHT
+            loc.x+std::cos(eye_forward.angle)*GetMaxSight(0),
+            loc.y+std::sin(eye_forward.angle)*GetMaxSight(0)
         );
 
-        float dist_left=MAX_SIGHT;
-        float dist_right=MAX_SIGHT;
-        float dist_forward=MAX_SIGHT;
+        float dist_forward=GetMaxSight(0);
 
         Point point_of_collision;
 
         for(vec<Obstacle>::iterator it = obstacles.begin(); it != obstacles.end();it++) {
             Point point_of_collision;
-            if(it->CheckCollision(loc,eye_left_max,point_of_collision)) {
-                if(Distance(loc,point_of_collision)<dist_left) {
-                    dist_left = Distance(loc,point_of_collision);
-                    eye_left_max = point_of_collision;
-                }
-            }
+
             point_of_collision=Point();
-            if(it->CheckCollision(loc,eye_right_max,point_of_collision)) {
-                if(Distance(loc,point_of_collision)<dist_right) {
-                    dist_right = Distance(loc,point_of_collision);
-                    eye_right_max = point_of_collision;
-                }
-            }
-            point_of_collision=Point();
-            if(it->CheckCollision(loc,eye_forward_max,point_of_collision)) {
+            if(it->CheckCollision(loc,eye_forward_max,point_of_collision,GetMaxSight(0))) {
                 if(Distance(loc,point_of_collision)<dist_forward) {
                     dist_forward = Distance(loc,point_of_collision);
                     eye_forward_max = point_of_collision;
@@ -325,32 +394,52 @@ struct Agent : public sf::CircleShape {
             }
         }
 
-        float left_signal = ((1.0-dist_right/MAX_SIGHT)+(dist_left/MAX_SIGHT))*EYE_INPUT_WEIGHT;
-        eye_left.nerve->SetSignal(left_signal);
-        float right_signal = ((1.0-dist_left/MAX_SIGHT)+(dist_right/MAX_SIGHT))*EYE_INPUT_WEIGHT;
-        eye_right.nerve->SetSignal(right_signal);
-        eye_forward.nerve->SetSignal( (1.0-(dist_forward/MAX_SIGHT)) *EYE_INPUT_WEIGHT);
+        if(dist_forward < 50.0f) {
+            close = true;
+            dynamic_cast<SimpleSynapse*>(forward_impact_left.get())->SetWeight(FORWARD_IMPACT_WEIGHT);
+            dynamic_cast<SimpleSynapse*>(forward_impact_right.get())->SetWeight(-FORWARD_IMPACT_WEIGHT);
+        } else if(close) {
+            close = false;
+            dynamic_cast<SimpleSynapse*>(forward_impact_left.get())->SetWeight(0.0);
+            dynamic_cast<SimpleSynapse*>(forward_impact_right.get())->SetWeight(0.0);
+        }
 
-        angle_to_goal = std::atan2(goal.loc.y-loc.y, goal.loc.x-loc.x);
-        heading_correction = angle_to_goal-heading;
-        if(heading_correction > 0) goal_right->SetSignal(heading_correction);
-        else if(heading_correction < 0) goal_left->SetSignal(-heading_correction);
-
+        forward_impact_left->SetSignal( (1.0-(dist_forward/GetMaxSight(0))) );
+        forward_impact_right->SetSignal( (1.0-(dist_forward/GetMaxSight(0))) );
         
+        eye_forward.nerve->SetSignal( (1.0-(dist_forward/GetMaxSight(0))) *EYE_INPUT_WEIGHT);
 
-        turn_left->Update(time);
-        turn_right->Update(time);
+        float left_turn_sum = 0.0f;
+        float right_turn_sum = 0.0f;
+
+        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+            neurons_left[i]->Update(time);
+            neurons_right[i]->Update(time);
+
+            left_turn_sum += neurons_left[i]->GetCurrentOutputNormalized();
+            right_turn_sum += neurons_right[i]->GetCurrentOutputNormalized();    
+        }
+
+        Turn((right_turn_sum-left_turn_sum)*dt);
         
+        float speed = neuron_forward->GetCurrentOutputNormalized()*dt*AGENT_SPEED;
 
-        Turn((turn_right->GetCurrentOutput()-turn_left->GetCurrentOutput())*dt);
-        
-        float speed = move_forward->GetCurrentOutput()*dt*AGENT_SPEED;
-        loc.x += std::cos(heading)*speed;
-        loc.y += std::sin(heading)*speed;
+        float new_x = std::cos(heading)*speed;
+        float new_y = std::sin(heading)*speed;
+        Point p(new_x+loc.x,new_y+loc.y);
+        bool collision = false;
+        for(vec<Obstacle>::iterator it = obstacles.begin(); it != obstacles.end();it++) {
+            if(it->ContainsPoint(p)) {
+                collision=true; break;
+                
+            }
+        }
 
-        move_forward->Update(time);
 
-        this->setPosition(sf::Vector2f(loc.x,loc.y));
+        neuron_forward->Update(time);
+
+        if(!collision)
+            this->setPosition(sf::Vector2f(loc.x+=new_x,loc.y+=new_y));
     }
     void ShiftPosition(float x, float y) {
         loc.x+=x; loc.y+=y;
@@ -358,6 +447,7 @@ struct Agent : public sf::CircleShape {
     }
     void Draw(sf::RenderWindow & window, float scale) {
         setRadius(radius/scale);
+        setOrigin(radius/(2.0f*scale),radius/(2.0f*scale));
         setPosition(sf::Vector2f(loc.x/scale,loc.y/scale));
         window.draw(*this);
     }
@@ -412,19 +502,11 @@ int main(int argc, char**argv) {
     ///////////////////////////////////////////////////////////////
 
 
-    Agent agent(rng,2000.0f,2000.0f,16.0f,templates);
-    Goal goal(Point(950.0f,950.0f));
+    Agent agent(rng,50.0f,50.0f,16.0f,templates);
+    Goal goal(Point(10000.0f,10000.0f));
     vec<Obstacle> obstacles;
-    std::uniform_real_distribution<float> xDist(150.0f,850.0f);
-    std::uniform_real_distribution<float> yDist(400.0f,850.0f);
-    for(int i = 0; i < NUM_OBSTACLES; i++) {
-        float x = xDist(rng);
-        float y = yDist(rng);
-        Point tl(x-25.0f,y-25.0f);
-        Point br(x+25.0f,y+25.0f);
-        obstacles.push_back(Obstacle(tl,br));
-    }
-
+    ObstacleScenario000(rng,obstacles);
+    //ObstacleScenario001(rng,obstacles);
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -466,42 +548,49 @@ int main(int argc, char**argv) {
             agent.Update(obstacles,goal,time_elapsed,time);
         }
 
-        PrintMsg(window,text,"AGENT LOC: "+std::to_string(agent.loc.x)+","+std::to_string(agent.loc.y),
-            600.0f,2.0f);
-        PrintMsg(window,text,"AGENT LOC: "+std::to_string(goal.loc.x)+","+std::to_string(goal.loc.y),
-            600.0f,20.0f);   
+        // PrintMsg(window,text,"AGENT LOC: "+std::to_string(agent.loc.x)+","+std::to_string(agent.loc.y),
+        //     600.0f,2.0f);
+        // PrintMsg(window,text,"AGENT LOC: "+std::to_string(goal.loc.x)+","+std::to_string(goal.loc.y),
+        //     600.0f,20.0f);   
 
         PrintMsg(window,text,"TIME:    "+std::to_string(time),400.0f,2.0f);
-        PrintMsg(window,text,"HEADING: "+std::to_string(agent.heading),400.0f,20.0f);
-        PrintMsg(window,text,"GOAL   : "+std::to_string(agent.angle_to_goal),400.0f,40.0f);
-        PrintMsg(window,text,"A:LEFT   : "+std::to_string(agent.eye_left.nerve->GetSignal()),400.0f,60.0f);
-        PrintMsg(window,text,"A:RIGHT  : "+std::to_string(agent.eye_right.nerve->GetSignal()),400.0f,80.0f);
-        PrintMsg(window,text,"A:FORWARD: "+std::to_string(agent.eye_forward.nerve->GetSignal()),400.0f,100.0f);
-        PrintMsg(window,text,"N:LEFT   : "+std::to_string(agent.turn_left->GetCurrentOutput()),400.0f,120.0f);
-        PrintMsg(window,text,"N:RIGHT  : "+std::to_string(agent.turn_right->GetCurrentOutput()),400.0f,140.0f);
-        PrintMsg(window,text,"N:FORWARD: "+std::to_string(agent.move_forward->GetCurrentOutput()),400.0f,160.0f);
-        PrintMsg(window,text,"H:CORRECT: "+std::to_string(agent.heading_correction),400.0f,180.0f);
+        // PrintMsg(window,text,"HEADING: "+std::to_string(agent.heading),400.0f,20.0f);
+        // PrintMsg(window,text,"GOAL   : "+std::to_string(agent.angle_to_goal),400.0f,40.0f);
+        // //PrintMsg(window,text,"A:LEFT   : "+std::to_string(agent.eye_left.nerve->GetSignal()),400.0f,60.0f);
+        // //PrintMsg(window,text,"A:RIGHT  : "+std::to_string(agent.eye_right.nerve->GetSignal()),400.0f,80.0f);
+        // PrintMsg(window,text,"A:FORWARD: "+std::to_string(agent.eye_forward.nerve->GetSignal()),400.0f,100.0f);
+        // //PrintMsg(window,text,"N:LEFT   : "+std::to_string(agent.turn_left->GetCurrentOutputNormalized()),400.0f,120.0f);
+        // //PrintMsg(window,text,"N:RIGHT  : "+std::to_string(agent.turn_right->GetCurrentOutputNormalized()),400.0f,140.0f);
+        // PrintMsg(window,text,"N:FORWARD: "+std::to_string(agent.neuron_forward->GetCurrentOutputNormalized()),400.0f,160.0f);
+        // PrintMsg(window,text,"H:CORRECT: "+std::to_string(agent.heading_correction),400.0f,180.0f);
 
-        sf::Vertex left[] = {
-            sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
-            sf::Vertex(sf::Vector2f(agent.eye_left_max.x/scale, agent.eye_left_max.y/scale))  
-        };
-        sf::Vertex right[] = {
-            sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
-            sf::Vertex(sf::Vector2f(agent.eye_right_max.x/scale, agent.eye_right_max.y/scale))  
-        };
+        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+
+            sf::Vertex left[] = {
+                sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
+                sf::Vertex(sf::Vector2f(agent.eyes_left_max[i].x/scale, agent.eyes_left_max[i].y/scale))  
+            };
+            sf::Vertex right[] = {
+                sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
+                sf::Vertex(sf::Vector2f(agent.eyes_right_max[i].x/scale, agent.eyes_right_max[i].y/scale))  
+            };
+
+            left[0].color=sf::Color::Red;
+            right[0].color=sf::Color::Red;
+
+            window.draw(left,2,sf::Lines);
+            window.draw(right,2,sf::Lines);
+        }
         sf::Vertex forward[] = {
             sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
             sf::Vertex(sf::Vector2f(agent.eye_forward_max.x/scale, agent.eye_forward_max.y/scale))  
         };
-        left[0].color=sf::Color::Red;
-        right[0].color=sf::Color::Red;
+        
         forward[0].color=sf::Color::Red;
-        window.draw(left,2,sf::Lines);
-        window.draw(right,2,sf::Lines);
+        
         window.draw(forward,2,sf::Lines);
 
-        for(int i = 0; i < NUM_OBSTACLES; i++) {
+        for(int i = 0; i < obstacles.size(); i++) {
             obstacles[i].Draw(window,scale);
             //window.draw(obstacles[i]);
         }
@@ -550,4 +639,26 @@ void ShiftObjects(float x, float y, Goal & goal, Agent & agent, vec<Obstacle> & 
     for(int i = 0; i < obstacles.size(); i++) {
         obstacles[i].ShiftPosition(x,y);
     }
+}
+float GetMaxSight(int position) {
+    return (NUM_SIDE_EYES-position)*( MAX_SIGHT / NUM_SIDE_EYES);
+}
+
+void ObstacleScenario000(std::mt19937_64 & rng, vec<Obstacle> & obstacles) {
+    std::uniform_real_distribution<float> xDist(500.0f,9500.0f);
+    std::uniform_real_distribution<float> yDist(500.0f,9500.0f);
+    for(int i = 0; i < NUM_OBSTACLES; i++) {
+        float x = xDist(rng);
+        float y = yDist(rng);
+        Point tl(x-100.0f,y-100.0f);
+        Point br(x+100.0f,y+100.0f);
+        obstacles.push_back(Obstacle(tl,br));
+    }
+}
+
+void ObstacleScenario001(std::mt19937_64 & rng, vec<Obstacle> & obstacles) {
+    Point tl1(2000.0f,500.0f); Point br1(2100.0f,3500.0f);
+    Point tl2(500.0f,2000.0f); Point br2(3500.0f,2100.0f);
+    obstacles.push_back(Obstacle(tl1,br1));
+    obstacles.push_back(Obstacle(tl2,br2));
 }

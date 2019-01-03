@@ -25,6 +25,8 @@ A makefile is included. You can build the current examples using:
 
 `make bee`: BeeDanceExample is a modified version of the follow example. Here each bee is given a set of other bees which it follows. It is set to produce a "conga line" pattern. Use PAGE UP and PAGE DOWN to zoom in and out, and LEFT, RIGHT, UP and DOWN arrows to shift the display. L will display lines from a bee to its leaders and LEFT BRACKET and RIGHT BRACKET will cycle through which bee's leaders are displayed. Play around with the values for number of bees, number of leaders, alphabase, speed, and bee synapse strength to see different behavior. Hint: more leaders creates a simpler pattern, while fewer creates a more complex pattern. It is set to 15. Run and wait for the pattern to come together. Run again set to 10. Repeat set to 5.
 
+`make path`: PathExample demonstrates how spiking neurons can be used for pathfinding. The agent consists of a field of forward-facing neurons that respond to obstacles within their lines of sight. The activity of these neurons influences whether the agent turns left or right to avoid the obstacle. There is a goal, red dot, at (10000,10000) which the agent uses to direct its overall path. Use PAGE UP and PAGE DOWN to zoom the view and the arrow keys to shift the view. P starts and pauses the simulation.
+
 ## Dependencies
 
 The examples use SFML as their graphics library. I recommend you install the latest version of SFML. If during compilation you receive warnings about deprecated SFML functions dealing with color, you have a slightly out of date version. I believe the version in the Ubuntu repo is slightly behind.

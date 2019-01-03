@@ -61,6 +61,7 @@ namespace spsp {
         double V();
         double U();
         double GetCurrentOutput();
+        double GetCurrentOutputNormalized();
 
         double C();
 

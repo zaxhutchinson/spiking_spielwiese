@@ -120,7 +120,7 @@ namespace spsp {
             if(!(*it)->GetActive()) {
                 it = o_syn.erase(it);
             } else {
-                (*it)->SetSignal(current_output);
+                (*it)->SetSignal(GetCurrentOutputNormalized());
                 it++;
             }
         }
@@ -181,6 +181,9 @@ namespace spsp {
     double Neuron::U() { return u; }
     double Neuron::GetCurrentOutput() {
         return current_output;
+    }
+    double Neuron::GetCurrentOutputNormalized() {
+        return current_output / (1.0+std::abs(current_output));
     }
 
     double Neuron::C() { return c; }

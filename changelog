@@ -1,0 +1,7 @@
+Change Log for Spiking Spielwiese:
+(Does not date to the start of the project.)
+
+1/2/2019:
+    - Adds PathExample
+    - Adds CurrentOutNormalized method to Neuron class. This uses the sigmoid x/ (1+abs(x)) to squash the output. By default, Neuron pushes this normalized output into the outgoing synapses.
+    
