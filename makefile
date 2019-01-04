@@ -3,115 +3,107 @@ CC=g++
 CFLAGS= -c -std=c++14 -fopenmp -g
 LFLAGS= -lm -lsfml-graphics -lsfml-window -lsfml-system -fopenmp
 SRCDIR= src
+LIBDIR= libspsp
+EXPDIR= examples
 OBJDIR= obj
-INCLUDE= -Iinclude
+INCLUDE= -I./include -I./src/libspsp
 
 ################################################################
 
 
-trace: neuron ntemplate synapse trace_example
+trace: clean libspsp trace_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
-		$(OBJDIR)/TraceExample.o \
+		$(OBJDIR)/*.o \
 		-o trace_example \
 		$(LFLAGS)
 
-trade: neuron ntemplate synapse trade_example
+trade: clean libspsp trade_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
-		$(OBJDIR)/TradeExample.o \
+		$(OBJDIR)/*.o \
 		-o trade_example \
 		$(LFLAGS)
 
-bee: neuron ntemplate synapse bee_example
+bee: clean libspsp bee_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
-		$(OBJDIR)/BeeExample.o \
+		$(OBJDIR)/*.o \
 		-o bee_example \
 		$(LFLAGS)
 
-follow: neuron ntemplate synapse follow_example
+follow: clean libspsp follow_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
-		$(OBJDIR)/FollowExample.o \
+		$(OBJDIR)/*.o \
 		-o follow_example \
 		$(LFLAGS)
 
-gridwar: neuron ntemplate synapse gridwar_example
+gridwar: clean libspsp gridwar_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
-		$(OBJDIR)/GridWarExample.o \
+		$(OBJDIR)/*.o \
 		-o gridwar_example \
 		$(LFLAGS)
 
-target: neuron ntemplate synapse target_example
+target: clean libspsp target_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o \
-		$(OBJDIR)/TargetExample.o \
+		$(OBJDIR)/*.o \
 		-o target_example \
 		$(LFLAGS)
 
-path: neuron ntemplate synapse bresenham path_example
+path: clean libspsp path_example
 	$(CC) \
-		$(OBJDIR)/Neuron.o $(OBJDIR)/NTemplate.o $(OBJDIR)/Synapse.o $(OBJDIR)/bresenham.o \
-		$(OBJDIR)/PathExample.o \
+		$(OBJDIR)/*.o \
 		-o path_example \
 		$(LFLAGS)
 
 target_example: $(OBJDIR)/TargetExample.o
 
-$(OBJDIR)/TargetExample.o: $(SRCDIR)/TargetExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/TargetExample.cpp -o $(OBJDIR)/TargetExample.o
+$(OBJDIR)/TargetExample.o: $(SRCDIR)/$(EXPDIR)/TargetExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/TargetExample.cpp -o $(OBJDIR)/TargetExample.o
 
 path_example: $(OBJDIR)/PathExample.o
 
-$(OBJDIR)/PathExample.o: $(SRCDIR)/PathExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/PathExample.cpp -o $(OBJDIR)/PathExample.o
+$(OBJDIR)/PathExample.o: $(SRCDIR)/$(EXPDIR)/PathExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/PathExample.cpp -o $(OBJDIR)/PathExample.o
 
 trade_example: $(OBJDIR)/TradeExample.o
 
-$(OBJDIR)/TradeExample.o: $(SRCDIR)/TradeExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/TradeExample.cpp -o $(OBJDIR)/TradeExample.o
+$(OBJDIR)/TradeExample.o: $(SRCDIR)/$(EXPDIR)/TradeExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/TradeExample.cpp -o $(OBJDIR)/TradeExample.o
 
 bee_example: $(OBJDIR)/BeeExample.o
 
-$(OBJDIR)/BeeExample.o: $(SRCDIR)/BeeExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/BeeExample.cpp -o $(OBJDIR)/BeeExample.o
+$(OBJDIR)/BeeExample.o: $(SRCDIR)/$(EXPDIR)/BeeExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/BeeExample.cpp -o $(OBJDIR)/BeeExample.o
 
 gridwar_example: $(OBJDIR)/GridWarExample.o
 
-$(OBJDIR)/GridWarExample.o: $(SRCDIR)/GridWarExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/GridWarExample.cpp -o $(OBJDIR)/GridWarExample.o
+$(OBJDIR)/GridWarExample.o: $(SRCDIR)/$(EXPDIR)/GridWarExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/GridWarExample.cpp -o $(OBJDIR)/GridWarExample.o
 
 follow_example: $(OBJDIR)/FollowExample.o
 
-$(OBJDIR)/FollowExample.o: $(SRCDIR)/FollowExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/FollowExample.cpp -o $(OBJDIR)/FollowExample.o
+$(OBJDIR)/FollowExample.o: $(SRCDIR)/$(EXPDIR)/FollowExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/FollowExample.cpp -o $(OBJDIR)/FollowExample.o
 
 trace_example: $(OBJDIR)/TraceExample.o
 
-$(OBJDIR)/TraceExample.o: $(SRCDIR)/TraceExample.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/TraceExample.cpp -o $(OBJDIR)/TraceExample.o
+$(OBJDIR)/TraceExample.o: $(SRCDIR)/$(EXPDIR)/TraceExample.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/TraceExample.cpp -o $(OBJDIR)/TraceExample.o
+
+libspsp: neuron ntemplate synapse 
 
 neuron: $(OBJDIR)/Neuron.o
 
-$(OBJDIR)/Neuron.o: $(SRCDIR)/Neuron.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/Neuron.cpp -o $(OBJDIR)/Neuron.o
+$(OBJDIR)/Neuron.o: $(SRCDIR)/$(LIBDIR)/Neuron.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(LIBDIR)/Neuron.cpp -o $(OBJDIR)/Neuron.o
 
 ntemplate: $(OBJDIR)/NTemplate.o
 
-$(OBJDIR)/NTemplate.o: $(SRCDIR)/NTemplate.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/NTemplate.cpp -o $(OBJDIR)/NTemplate.o
+$(OBJDIR)/NTemplate.o: $(SRCDIR)/$(LIBDIR)/NTemplate.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(LIBDIR)/NTemplate.cpp -o $(OBJDIR)/NTemplate.o
 
 synapse: $(OBJDIR)/Synapse.o
 
-$(OBJDIR)/Synapse.o: $(SRCDIR)/Synapse.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/Synapse.cpp -o $(OBJDIR)/Synapse.o
-
-bresenham: $(OBJDIR)/bresenham.o
-
-$(OBJDIR)/bresenham.o: $(SRCDIR)/bresenham.cpp
-	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/bresenham.cpp -o $(OBJDIR)/bresenham.o
+$(OBJDIR)/Synapse.o: $(SRCDIR)/$(LIBDIR)/Synapse.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(LIBDIR)/Synapse.cpp -o $(OBJDIR)/Synapse.o
 
 
 clean:

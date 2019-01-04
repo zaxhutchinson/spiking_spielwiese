@@ -19,11 +19,12 @@ using namespace spsp;
 const int GRID_SIZE_X=100;
 const int GRID_SIZE_Y=100;
 const float CONN_PROB=1.0;
-const double INH_WEIGHT=-300.0;
-const double EXC_WEIGHT=298.0;
-const int NUM_PLAYERS=3;
+const double INH_WEIGHT=-200.0;
+const double EXC_WEIGHT=1015.0;
+const int NUM_PLAYERS=5;
 const int PLAYER_INPUT_DURATION=1000;
 const double STARTING_INPUT=400.0;
+const double ALPHABASE=1.0;
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
@@ -79,6 +80,7 @@ void StopPlayer(sptr<Player> player);
 void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
                             std::uniform_int_distribution<int> & dist,
                             std::mt19937_64 & rng,
+                            vec<double> & energy,
                             uint64_t time);
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y);
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y, sf::Color color);
@@ -186,12 +188,17 @@ int main() {
 
         //--------------------------------------------------
         // UPDATE
+        vec<double> energy;
+
+        for(int i = 0; i < NUM_PLAYERS; i++) energy.push_back(0.0);
+
         if(time==PLAYER_INPUT_DURATION) {
             for(int i = 0; i < NUM_PLAYERS; i++) {
                 StopPlayer(players[i]);
+                
             }
         }
-        UpdateNetwork(network,playerOrderDist,rng,time);
+        UpdateNetwork(network,playerOrderDist,rng,energy,time);
         //--------------------------------------------------
         // DRAW
 
@@ -201,6 +208,11 @@ int main() {
         PrintMsg(window,text,"TIME: "+std::to_string(time),10.0f,10.0f);
         PrintMsg(window,text,"WAIT TIME: "+std::to_string(wait_time),10.0f,30.0f);
         PrintMsg(window,text,"PLAYER: "+std::to_string(player_index),10.0f,50.0f);
+
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            energy[i] = energy[i] / (GRID_SIZE_X*GRID_SIZE_Y); // Normalize by number of neurons
+            PrintMsg(window,text,"Energy [" + std::to_string(i) + "]  " + std::to_string(energy[i]),600.0f,10.0f+i*15.0f);
+        }
 
         window.display();
 
@@ -272,7 +284,7 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
 
             for(int i = 0; i < NUM_PLAYERS; i++) {
                 sptr<Neuron> n = std::make_shared<Neuron>(nt);
-                n->SetAlphaBase(2.0);
+                n->SetAlphaBase(ALPHABASE);
                 n->EnableNoise(NoiseType::Normal,0.0,1.0,rng());
                 point.push_back(n);
             }
@@ -424,14 +436,17 @@ void StopPlayer(sptr<Player> player) {
 void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
                             std::uniform_int_distribution<int> & dist,
                             std::mt19937_64 & rng,
+                            vec<double> & energy,
                             uint64_t time) {
-    #pragma omp parallel for
+    #pragma omp parallel for shared(energy)
     for(int x = GRID_SIZE_X-1; x >= 0; x--) {
         for(int y = GRID_SIZE_Y-1; y >= 0; y--) {
             //int first = dist(rng);
             //for(int i = first; i < (first+NUM_PLAYERS-1)%NUM_PLAYERS; i=(i+1)%NUM_PLAYERS) {
             for(int i = 0; i < NUM_PLAYERS; i++) {
                 network[x][y][i]->Update(time);
+                #pragma omp atomic
+                energy[i] += network[x][y][i]->GetCurrentOutputNormalized();
             }
         }
     }

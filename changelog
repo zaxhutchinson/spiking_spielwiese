@@ -5,3 +5,7 @@ Change Log for Spiking Spielwiese:
     - Adds PathExample
     - Adds CurrentOutNormalized method to Neuron class. This uses the sigmoid x/ (1+abs(x)) to squash the output. By default, Neuron pushes this normalized output into the outgoing synapses.
     
+1/4/2019:
+    - Separates lib files and example files, reworking makefile.
+    - Updates values in some examples to accommodate for the changed to normalized neuronal output. Have not checked all. Gridwar, Trace, Target, Bee, and Path are fine.
+    - Adds energy calculations to gridwar

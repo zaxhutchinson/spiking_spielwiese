@@ -4,7 +4,7 @@ Spiking Spielwiese [SPSP] is a modern C++ library created to simplify the additi
 
 I have started posting animated gifs of the examples on my ResearchGate project page: https://www.researchgate.net/project/Spiking-Spielwiese
 
-As I work on the library I am adding examples both to test and to demonstrate my research into extending their usefulness. Presently, both library and examples are lumped together. The library files consist of (cpp/hpp):
+The library can be found in /src/libspsp. Examples are located in /src/examples. As I work on the library I am adding examples both to test and to demonstrate my research into extending their usefulness.
 
 * NTemplate
 * Neuron
@@ -21,7 +21,7 @@ A makefile is included. You can build the current examples using:
 
 `make follow`: FollowExample shows how spiking neurons can be used to move an agent about in 2d space. Use WASD to move your agent. The others will follow.
 
-`make target`: TargetExample is a variant of the follow example. The agents will follow the player around the screen and fire small shells in the direction of the player. Currently not shown, the "turret" object of each agent rotates before firing at the player. The turret, just like the non-player agents, are controlled with spiking neuron output. Same controls as FollowExample. There is no end. Being hit by the projectile does nothing and there is no way to win.
+`make target`: TargetExample is a variant of the follow example. The agents will follow the player around the screen and fire small shells in the direction of the player. Currently not shown, the "turret" object of each agent rotates before firing at the player. The turret, just like the non-player agents, are controlled with spiking neuron output. Same controls as FollowExample. There is no end. Being hit by the projectile does nothing and there is no way to win. TODO: I have not implemented view manipulations (zoom or shift) for this example.
 
 `make gridwar`: GridWarExample shows how "energy" from a single spiking neuron can spread throughout a lattice network and how sufficient energy is sellf-sustaining. The visual is comprised of N grids for N starting locations. Each grid (shown in a different color) inhibits activity in the other grids. Each growth will fight the others for space, hence the name. External input is provided to an initial neuron in each grid for 1000 time steps after which it is removed and persistent activity is maintained through recurrent excitation.
 
