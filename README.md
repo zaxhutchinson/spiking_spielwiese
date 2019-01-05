@@ -36,7 +36,7 @@ The examples use SFML as their graphics library. I recommend you install the lat
 ## Basic Tutorial
 First, load the neuron templates by creating an instance of the NeuronTemplate class. Use this object to provide data to new neurons using the GetNeuronTemplate( neuron_name ) method.
 
-Creating Neuron objects is as easy as providing the neuron constructor with a shared_ptr to an NT object. For example, the code below creates two neuron objects.
+Creating Neuron objects is as easy as providing the neuron constructor with a pointer to an NT object. For example, the code below creates two neuron objects.
 
 ```
 NeuronTemplates nt;

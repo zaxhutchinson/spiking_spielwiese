@@ -8,7 +8,7 @@ namespace spsp {
 
     bool NeuronTemplates::LoadDefaultTemplates() {
         // Regular Spiking
-        sptr<NT> nt = std::make_shared<NT>();
+        sptr<NT> nt = std::make_unique<NT>();
         nt->name="RegularSpiking";
         nt->cap=100.0;
         nt->vr=-60.0;
@@ -21,10 +21,10 @@ namespace spsp {
         nt->d=100.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name] = nt;
+        neuron_templates[nt->name] = std::move(nt);
 
         // Chattering
-        nt = std::make_shared<NT>();
+        nt = std::make_unique<NT>();
         nt->name="Chattering";
         nt->cap=50;
         nt->vr=-60.0;
@@ -37,10 +37,10 @@ namespace spsp {
         nt->d=150.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name]=nt;
+        neuron_templates[nt->name]=std::move(nt);
 
         // Medium Spiny Neuron
-        nt = std::make_shared<NT>();
+        nt = std::make_unique<NT>();
         nt->name="MediumSpiny";
         nt->cap=50.0;
         nt->vr=-80.0;
@@ -53,10 +53,10 @@ namespace spsp {
         nt->d=150.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name] = nt;
+        neuron_templates[nt->name] = std::move(nt);
 
         // Relay
-        nt = std::make_shared<NT>();
+        nt = std::make_unique<NT>();
         nt->name="Relay";
         nt->cap=200.0;
         nt->vr=-60.0;
@@ -69,10 +69,10 @@ namespace spsp {
         nt->d=100.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name] = nt;
+        neuron_templates[nt->name] = std::move(nt);
 
         // Fast Spiking
-        nt = std::make_shared<NT>();
+        nt = std::make_unique<NT>();
         nt->name="FastSpiking";
         nt->cap=20.0;
         nt->vr=-55.0;
@@ -85,10 +85,10 @@ namespace spsp {
         nt->d=200.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name] = nt;
+        neuron_templates[nt->name] = std::move(nt);
 
         // Reticular Thalamic
-        nt = std::make_shared<NT>();
+        nt = std::make_unique<NT>();
         nt->name="ReticularThalamic";
         nt->cap=40.0;
         nt->vr=-65.0;
@@ -101,10 +101,10 @@ namespace spsp {
         nt->d=50.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name] = nt;
+        neuron_templates[nt->name] = std::move(nt);
 
         // Intrinsic Bursting
-        nt = std::make_shared<NT>();
+        nt = std::make_unique<NT>();
         nt->name="IntrinsicBursting";
         nt->cap=150.0;
         nt->vr=-75.0;
@@ -117,19 +117,19 @@ namespace spsp {
         nt->d=130.0;
         nt->baseline=0.0;
         nt->alphabase=1.0;
-        neuron_templates[nt->name] = nt;
+        neuron_templates[nt->name] = std::move(nt);
     }
 
-    sptr<NT> NeuronTemplates::GetNeuronTemplate(std::string name) {
+    NT * NeuronTemplates::GetNeuronTemplate(std::string name) {
         try {
-            return neuron_templates.at(name);
+            return neuron_templates.at(name).get();
         } catch (std::out_of_range e) {
             return nullptr;
         }
     }
 
-    bool NeuronTemplates::AddNeuronTemplate(sptr<NT> nt) {
-        return neuron_templates.emplace(nt->name, nt).second;
+    bool NeuronTemplates::AddNeuronTemplate(uptr<NT> nt) {
+        return neuron_templates.emplace(nt->name, std::move(nt)).second;
     }
 
     bool NeuronTemplates::AddNeuronTemplate(std::string name,
@@ -145,7 +145,7 @@ namespace spsp {
                             double baseline,
                             double alphabase                        
     ) {
-        sptr<NT> nt = std::make_shared<NT>();
+        sptr<NT> nt = std::make_unique<NT>();
         nt->cap = cap;
         nt->vr = vr;
         nt->vt = vt;
@@ -158,6 +158,6 @@ namespace spsp {
         nt->baseline = baseline;
         nt->alphabase = alphabase;
 
-        return neuron_templates.emplace(nt->name, nt).second;
+        return neuron_templates.emplace(nt->name, std::move(nt)).second;
     }
 }

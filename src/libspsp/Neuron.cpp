@@ -6,7 +6,7 @@ namespace spsp {
     Neuron::Neuron() {
     }
 
-    Neuron::Neuron(sptr<NT> nt) {
+    Neuron::Neuron(NT * nt) {
         cap = nt->cap;
         vr = nt->vr;
         vt = nt->vt;

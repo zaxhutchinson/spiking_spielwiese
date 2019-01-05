@@ -25,7 +25,7 @@ namespace spsp {
 
     public:
         Neuron();
-        Neuron(sptr<NT> nt); // Ctor to use
+        Neuron(NT * nt); // Ctor to use
         // Copy Ctor and assignment is disallowed
         Neuron(const Neuron & other) = delete;
         Neuron & operator=(const Neuron & other) = delete;

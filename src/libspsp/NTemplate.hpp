@@ -39,8 +39,8 @@ namespace spsp {
 
         NeuronTemplates();
         bool LoadDefaultTemplates();
-        sptr<NT> GetNeuronTemplate(std::string name);
-        bool AddNeuronTemplate(sptr<NT> nt);
+        NT * GetNeuronTemplate(std::string name);
+        bool AddNeuronTemplate(uptr<NT> nt);
         bool AddNeuronTemplate(std::string name,
                                 double cap,
                                 double vr,

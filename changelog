@@ -9,3 +9,7 @@ Change Log for Spiking Spielwiese:
     - Separates lib files and example files, reworking makefile.
     - Updates values in some examples to accommodate for the changed to normalized neuronal output. Have not checked all. Gridwar, Trace, Target, Bee, and Path are fine.
     - Adds energy calculations to gridwar
+
+1/5/2019:
+    - Changes the pointer storage type of NT objects from shared to unique.
+    - Changes the return value from NeuronTemplates::GetNeuronTemplate method from a shared_ptr to a non-owning raw pointer.
