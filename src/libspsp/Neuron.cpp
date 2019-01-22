@@ -61,6 +61,8 @@ namespace spsp {
 
     void Neuron::Reset() {
         spike_age_buffer.clear();
+        v=v_prev=c;
+        u=d;
     }
 
     void Neuron::Update(uint64_t time) {
@@ -115,21 +117,22 @@ namespace spsp {
     }
 
     void Neuron::Output() {
+        double c_output = GetCurrentOutputNormalized();
         for(lsptr<Synapse>::iterator it = o_syn.begin();
                 it != o_syn.end(); ) {
             if(!(*it)->GetActive()) {
-                it = o_syn.erase(it);
+                //it = o_syn.erase(it);
             } else {
-                (*it)->SetSignal(GetCurrentOutputNormalized());
+                (*it)->SetSignal(c_output);
                 it++;
             }
         }
     }
 
-    void Neuron::EnableNoise(NoiseType type, double val_a, double val_b, long seed) {
-        EnableNoise(type,val_a,val_b,std::make_shared<std::mt19937_64>(seed));
+    void Neuron::EnableNoise(NoiseType type, long seed, double val_a, double val_b) {
+        EnableNoise(type,std::make_shared<std::mt19937_64>(seed),val_a,val_b);
     }
-    void Neuron::EnableNoise(NoiseType type, double val_a, double val_b, sptr<std::mt19937_64> rng){
+    void Neuron::EnableNoise(NoiseType type, sptr<std::mt19937_64> rng, double val_a, double val_b){
         this->rng = rng;
         if(type==NoiseType::Normal) {
             normal_dist = std::normal_distribution<double>(val_a,val_b);
@@ -168,7 +171,7 @@ namespace spsp {
         double input = 0.0;
         for(lsptr<Synapse>::iterator it = i_syn.begin(); it != i_syn.end(); ) {
             if(!(*it)->GetActive()) {
-                it = i_syn.erase(it);
+                //it = i_syn.erase(it);
             } else {
                 input += (*it)->GetSignal();
                 it++;

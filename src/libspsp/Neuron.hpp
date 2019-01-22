@@ -43,8 +43,8 @@ namespace spsp {
         void RegisterSpike(uint64_t time);  // Called by Update
 
         // Turn on noise
-        void EnableNoise(NoiseType type, double val_a=0.0, double val_b=1.0, long seed=0);
-        void EnableNoise(NoiseType type, double val_a, double val_b, sptr<std::mt19937_64> rng);
+        void EnableNoise(NoiseType type, long seed=0, double val_a=0.0, double val_b=1.0);
+        void EnableNoise(NoiseType type, sptr<std::mt19937_64> rng, double val_a=0.0, double val_b=1.0);
 
         void SetAlphaBase(double alphabase);
 

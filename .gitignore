@@ -38,6 +38,7 @@
 /.vscode
 /test
 /notes
+/sandbox
 
 # Example Executables
 target_example
