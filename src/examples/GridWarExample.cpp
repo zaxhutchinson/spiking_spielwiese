@@ -4,6 +4,7 @@
 #include<thread>
 #include<cmath>
 #include<random>
+#include<fstream>
 
 #include<SFML/Graphics.hpp>
 
@@ -13,6 +14,15 @@
 #include"NTemplate.hpp"
 
 using namespace spsp;
+
+/* NOTES:
+    Spare firing with large holes.
+    Exc_weight = 1000
+    Alphabase = 1.0
+
+
+*/
+
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
@@ -20,11 +30,14 @@ const int GRID_SIZE_X=100;
 const int GRID_SIZE_Y=100;
 const float CONN_PROB=1.0;
 const double INH_WEIGHT=-200.0;
-const double EXC_WEIGHT=1015.0;
-const int NUM_PLAYERS=5;
+const double EXC_WEIGHT=540.0;//1015.0;
+const int NUM_PLAYERS=1;
 const int PLAYER_INPUT_DURATION=1000;
 const double STARTING_INPUT=400.0;
-const double ALPHABASE=1.0;
+const double ALPHABASE=2.0;
+const float SQUARE_SIZE=7;
+const int COLOR_MIN=200;
+const int COLOR_MAX=210;
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
@@ -60,7 +73,7 @@ struct Player {
 void GenerateGrid(vec<vec<Cell>> & grid, std::mt19937_64 & rng);
 void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
                             vec<vec<vsptr<Neuron>>> & network,
-                            sptr<NT> nt,
+                            NT * nt,
                             std::mt19937_64 & rng);
 void DrawNetwork(sf::RenderWindow & window,
                             vec<vec<vsptr<Neuron>>> & network,
@@ -106,7 +119,8 @@ int main() {
     vec<sf::Color> player_colors;
     std::uniform_int_distribution<int> xDist(0,GRID_SIZE_X-1);
     std::uniform_int_distribution<int> yDist(0,GRID_SIZE_Y-1);
-    std::uniform_int_distribution<int> colorDist(25,220);
+    std::uniform_int_distribution<int> colorDist(COLOR_MIN,COLOR_MAX);
+    std::ofstream fout("energy.out", std::ios::out);
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -116,9 +130,7 @@ int main() {
         sptr<Player> p = std::make_shared<Player>(i);
         p->bases.push_back(Coord(xDist(rng),yDist(rng)));
         players.push_back(p);
-        player_colors.push_back(sf::Color(colorDist(rng),
-                                    colorDist(rng),
-                                    colorDist(rng)));
+        player_colors.push_back(sf::Color(255,255,255));
     }
 
     ///////////////////////////////////////////////////////////////
@@ -199,6 +211,9 @@ int main() {
             }
         }
         UpdateNetwork(network,playerOrderDist,rng,energy,time);
+
+        fout << std::to_string(energy[0]).c_str() << std::endl;
+
         //--------------------------------------------------
         // DRAW
 
@@ -210,7 +225,7 @@ int main() {
         PrintMsg(window,text,"PLAYER: "+std::to_string(player_index),10.0f,50.0f);
 
         for(int i = 0; i < NUM_PLAYERS; i++) {
-            energy[i] = energy[i] / (GRID_SIZE_X*GRID_SIZE_Y); // Normalize by number of neurons
+            //energy[i] = energy[i] / (GRID_SIZE_X*GRID_SIZE_Y); // Normalize by number of neurons
             PrintMsg(window,text,"Energy [" + std::to_string(i) + "]  " + std::to_string(energy[i]),600.0f,10.0f+i*15.0f);
         }
 
@@ -220,6 +235,8 @@ int main() {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(wait_time));
     }
+
+    fout.close();
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -267,7 +284,7 @@ void GenerateGrid(vec<vec<Cell>> & grid, std::mt19937_64 & rng) {
 }
 void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
                             vec<vec<vsptr<Neuron>>> & network,
-                            sptr<NT> nt,
+                            NT * nt,
                             std::mt19937_64 & rng) {
 
     // N,S,E,W
@@ -285,7 +302,7 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
             for(int i = 0; i < NUM_PLAYERS; i++) {
                 sptr<Neuron> n = std::make_shared<Neuron>(nt);
                 n->SetAlphaBase(ALPHABASE);
-                n->EnableNoise(NoiseType::Normal,0.0,1.0,rng());
+                n->EnableNoise(NoiseType::Normal,rng(),0.0,1.0);
                 point.push_back(n);
             }
 
@@ -309,12 +326,18 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
         for(int y = 0; y < GRID_SIZE_Y; y++) {
             for(int i = 0; i < 4; i++) {
 
+                double exc_weight = EXC_WEIGHT;
+                
+                // WAVE PATTERN
+                if(i==2) exc_weight*=1.5;
+                else exc_weight*=0.85;
+
                 if(grid[x][y].conn[i]) {
                     int nx = (x+xoff[i]+GRID_SIZE_X)%GRID_SIZE_X;
                     int ny = (y+yoff[i]+GRID_SIZE_Y)%GRID_SIZE_Y;
 
                     for(int j = 0; j < NUM_PLAYERS; j++) {
-                        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(EXC_WEIGHT,2);
+                        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(exc_weight,2);
                         network[x][y][j]->AddOutputSynapse(syn);
                         network[nx][ny][j]->AddInputSynapse(syn);
                     }
@@ -345,7 +368,7 @@ void DrawNetwork(sf::RenderWindow & window,
             float ny = 100.0f+y*20.0f;
 
             cs.setPosition(nx,ny);
-            int alpha = static_cast<int>(255*network[x][y][player]->GetCurrentOutput());
+            int alpha = static_cast<int>(255*network[x][y][player]->GetCurrentOutputNormalized());
             if(alpha > 255) alpha=255;
             color.a=( alpha );
             cs.setFillColor(color);
@@ -384,17 +407,17 @@ void DrawNetwork2(sf::RenderWindow & window,
                             vec<vec<Cell>> & grid,
                             vec<sf::Color> colors,
                             int player) {
-    sf::RectangleShape rs(sf::Vector2f(4.0f,4.0f));
+    sf::RectangleShape rs(sf::Vector2f(SQUARE_SIZE,SQUARE_SIZE));
 
     sf::Color color = colors[player];
 
     for(int x = 0; x < GRID_SIZE_X; x++) {
         for(int y = 0; y < GRID_SIZE_Y; y++) {
             for(int i = 0; i < NUM_PLAYERS; i++) {
-                float px=x*4.0f+100.0f;
-                float py=y*4.0f+100.0f;
+                float px=x*SQUARE_SIZE+100.0f;
+                float py=y*SQUARE_SIZE+100.0f;
                 rs.setPosition(px,py);
-                int alpha = static_cast<int>(255*network[x][y][i]->GetCurrentOutput());
+                int alpha = static_cast<int>(255*network[x][y][i]->GetCurrentOutputNormalized());
                 if(alpha > 255) alpha=255;
                 colors[i].a=( alpha );
                 rs.setFillColor(colors[i]);
@@ -423,14 +446,12 @@ void AddPlayerToNetwork(vec<vec<vsptr<Neuron>>> & network,
 }
 void StartPlayer(sptr<Player> player) {
     for(int i = 0; i < player->synapses.size(); i++) {
-        player->synapses[i]->SetSignal(player->inputs[i]);
-        player->synapses[i]->SetSignal(player->inputs[i]);
+        player->synapses[i]->SetSignal(i,player->inputs[i]);
     }
 }
 void StopPlayer(sptr<Player> player) {
     for(int i = 0; i < player->synapses.size(); i++) {
-        player->synapses[i]->SetSignal(0.0);
-        player->synapses[i]->SetSignal(0.0);
+        player->synapses[i]->SetSignal(i,0.0);
     }
 }
 void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,

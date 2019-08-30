@@ -6,8 +6,8 @@ namespace spsp {
     Synapse::Synapse() {}
     bool Synapse::GetActive() const { return do_GetActive(); }
     void Synapse::SetActive(bool active) { do_SetActive(active); }
-    double Synapse::GetSignal() const { return do_GetSignal(); }
-    void Synapse::SetSignal(double signal) { do_SetSignal(signal); }
+    double Synapse::GetSignal(uint64_t time) const { return do_GetSignal(time); }
+    void Synapse::SetSignal(uint64_t time,double signal) { do_SetSignal(time, signal); }
     void Synapse::RegisterNewPreSpike(uint64_t time) { do_RegisterNewPreSpike(time); }
     void Synapse::RegisterNewPostSpike(uint64_t time) { do_RegisterNewPostSpike(time); }
 
@@ -15,16 +15,18 @@ namespace spsp {
     // SIMPLE SYNAPSE INTERFACE DEFINITIONS
     /////////////////////////////////////////////////////////////////////////
     SimpleSynapse::SimpleSynapse() 
-        : active(true), weight(0.0), delay(0), time(0),
-            signal_history_size(1),
+        : active(true), weight(0.0), delay(0),
+            signal_history_size(2),
             pre_spike_time(nullptr), post_spike_time(nullptr) {
 
-        signal.push_back(0.0);
+        for(uint64_t i = 0; i < signal_history_size; i++) {
+            signal.push_back(0.0);
+        }
         
     }
 
     SimpleSynapse::SimpleSynapse(double weight, uint64_t signal_history_size)
-        :active(true), weight(weight), delay(0), time(0),
+        :active(true), weight(weight), delay(0),
             signal_history_size(signal_history_size),
             pre_spike_time(nullptr), post_spike_time(nullptr) {
 
@@ -51,14 +53,6 @@ namespace spsp {
 
     void SimpleSynapse::SetDelay(uint64_t delay) {
         this->delay = delay;
-    }
-
-    uint64_t SimpleSynapse::GetTime() const {
-        return time;
-    }
-
-    void SimpleSynapse::SetTime(uint64_t time) {
-        this->time = time;
     }
 
     uint64_t SimpleSynapse::GetSignalHistorySize() const {
@@ -104,7 +98,7 @@ namespace spsp {
         this->active = active;
     }
 
-    double SimpleSynapse::do_GetSignal() const {
+    double SimpleSynapse::do_GetSignal(uint64_t time) const {
         // Positive modulo
         // (delay+1) is to get time-1 when delay is 0, default.
         int index = ( (time-(delay+1))%signal_history_size+signal_history_size )
@@ -112,8 +106,8 @@ namespace spsp {
         return signal[index];
     }
 
-    void SimpleSynapse::do_SetSignal(double signal) {
-        time = (time+1)%signal_history_size;
+    void SimpleSynapse::do_SetSignal(uint64_t time, double signal) {
+        time = time%signal_history_size;
         this->signal[time]=signal*weight;
     }
 
@@ -143,7 +137,7 @@ namespace spsp {
 
     }
 
-    void STDPSynapse::do_SetSignal(double signal) {
+    void STDPSynapse::do_SetSignal(uint64_t time, double signal) {
         time = (time+1)%signal_history_size;
         this->signal[time] = signal *
                 (weight*strength) /
@@ -255,10 +249,10 @@ namespace spsp {
     void CountingSynapse::do_SetActive(bool active) {
         this->active = active;
     }
-    double CountingSynapse::do_GetSignal() const {
+    double CountingSynapse::do_GetSignal(uint64_t time) const {
         return 0.0;
     }
-    void CountingSynapse::do_SetSignal(double signal) {
+    void CountingSynapse::do_SetSignal(uint64_t time, double signal) {
         // Do nothing
     }
     void CountingSynapse::do_RegisterNewPreSpike(uint64_t time) {
