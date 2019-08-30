@@ -32,7 +32,6 @@
 *.app
 
 # Dirs
-/obj
 /build
 /old
 /.vscode

@@ -1,6 +1,10 @@
 CC=g++
 
-CFLAGS= -c -std=c++14 -fopenmp -g
+# DEBUG
+CFLAGS= -c -std=c++14 -fopenmp -g3
+# RELEASE
+CFLAGS= -c -std=c++14 -fopenmp -O3
+
 LFLAGS= -lm -lsfml-graphics -lsfml-window -lsfml-system -fopenmp
 SRCDIR= src
 LIBDIR= libspsp
