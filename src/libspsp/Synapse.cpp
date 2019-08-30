@@ -61,7 +61,7 @@ namespace spsp {
 
     void SimpleSynapse::SetSignalHistorySize(uint64_t size) {
         signal_history_size = size;
-        for(int i = 0; i < signal_history_size; i++) {
+        for(unsigned i = 0; i < signal_history_size; i++) {
             signal.push_back(0.0);
         }
     }

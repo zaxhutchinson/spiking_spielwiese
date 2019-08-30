@@ -84,7 +84,6 @@ int main(int argc, char**argv) {
     dot.setFillColor(sf::Color(255,255,0));
     double output[1000] = {0.0};
     double v[1000] = {0.0};
-    double u[1000] = {0.0};
     int nt_index = 0;
 
     if(!font.loadFromFile("resources/saxmono.ttf")) {
@@ -111,7 +110,6 @@ int main(int argc, char**argv) {
     }
 
     double exin = 0.0;
-    double out = 0.0;
 
     NeuronTemplates templates;
 
@@ -139,6 +137,7 @@ int main(int argc, char**argv) {
                         nt_index=(nt_index-1+num_neuron_types)%num_neuron_types;
                         BuildNetwork(network,templates,nt_index);
                         break;
+                    default: break;
                 }
             }
         }

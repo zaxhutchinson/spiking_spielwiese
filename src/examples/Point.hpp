@@ -5,12 +5,15 @@
 #include<iostream>
 #include<vector>
 #include<cmath>
+#include<string>
 
 struct Point {
-  float x;
-  float y;
-  Point();
-  Point(float _x, float _y);
+    float x;
+    float y;
+    Point();
+    Point(const Point & p);
+    Point(float _x, float _y);
+    std::string to_string();
 };
 
 void plotLineLow(Point a, Point b, std::vector<Point> & points);

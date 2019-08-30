@@ -90,7 +90,7 @@ struct Bee : public sf::CircleShape
         S->AddInputSynapse(leader->y_pos);
     }
     void SetLeaders(vsptr<Bee> leaders) {
-        for(int i = 0; i < leaders.size(); i++) {
+        for(unsigned i = 0; i < leaders.size(); i++) {
             this->leaders.push_back(leaders[i]);
             AddOwnSynapses();
             E->AddInputSynapse(leaders[i]->x_pos);
@@ -195,10 +195,8 @@ int main(int argc, char**argv) {
 
     float x = 0.0f;
     float y = 0.0f;
-    float r = 0.0f;
-    float m = 0.0f;
 
-    for(int i = 0; i < NUM_BEES; i++) {
+    for(unsigned i = 0; i < NUM_BEES; i++) {
         /////////////////////////
         // Spawn in circle
         //r = rDist(rng);
@@ -247,6 +245,7 @@ int main(int argc, char**argv) {
                     case sf::Keyboard::L: leader_lines=!leader_lines; break;
                     case sf::Keyboard::RBracket: show_bee_index=(show_bee_index+1)%NUM_BEES; break;
                     case sf::Keyboard::LBracket: show_bee_index=(show_bee_index-1+NUM_BEES)%NUM_BEES; break;
+                    default: break;
                 }
             }
         }
@@ -259,7 +258,7 @@ int main(int argc, char**argv) {
         if(pause) {
             PrintMsg(window,text,"PAUSED",480.0f,10.0f,sf::Color::Red);
         } else {
-            for(int i = 0;i < bees.size();i++) {
+            for(unsigned i = 0;i < bees.size();i++) {
                 bees[i]->Update(time_elapsed,time);
             }
         }
@@ -268,7 +267,7 @@ int main(int argc, char**argv) {
             DrawLeaderLines(window,bees[show_bee_index],scale);
         }
 
-        for(int i = 0;i < bees.size();i++) {
+        for(unsigned i = 0;i < bees.size();i++) {
             bees[i]->Draw(window,scale);
         }
 
@@ -297,7 +296,7 @@ void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x,
 
 void RandomizeBeeLeadersOne(vsptr<Bee> bees, std::mt19937_64 & rng) {
     //std::shuffle(bees.begin(), bees.end(), rng);
-    for(int i = 0; i < bees.size(); i++) {
+    for(unsigned i = 0; i < bees.size(); i++) {
 
         sptr<Bee> follower = bees[i];
         sptr<Bee> leader = bees[ (i+1)%bees.size() ];
@@ -309,10 +308,10 @@ void RandomizeBeeLeadersOne(vsptr<Bee> bees, std::mt19937_64 & rng) {
 
 void RandomizeBeeLeadersTwo(vsptr<Bee> bees, std::mt19937_64 & rng) {
    // std::shuffle(bees.begin(), bees.end(), rng);
-    for(int i = 0; i < bees.size(); i++) {
+    for(unsigned i = 0; i < bees.size(); i++) {
 
         vsptr<Bee> leaders;
-        for(int l = 1; l <= NUM_LEADERS; l++) {
+        for(unsigned l = 1; l <= NUM_LEADERS; l++) {
             sptr<Bee> leader = bees[ (i+l)%bees.size() ];
             leaders.push_back(leader);
         }
@@ -326,13 +325,13 @@ void RandomizeBeeLeadersTwo(vsptr<Bee> bees, std::mt19937_64 & rng) {
 }
 
 void ShiftBees(vsptr<Bee> bees, float x_amt, float y_amt) {
-    for(int i = 0; i < bees.size(); i++) {
+    for(unsigned i = 0; i < bees.size(); i++) {
         bees[i]->ShiftPosition(x_amt,y_amt);
     }
 }
 
 void DrawLeaderLines(sf::RenderWindow & window, sptr<Bee> bee, float scale) {
-    for(int i = 0; i < bee->leaders.size(); i++) {
+    for(unsigned i = 0; i < bee->leaders.size(); i++) {
         sf::Vertex line[] =
         {
             sf::Vertex(sf::Vector2f(bee->x/scale,bee->y/scale)),

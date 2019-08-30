@@ -19,6 +19,10 @@ namespace spsp {
         Normal
     };
 
+    enum class NeuronType {
+
+    };
+
     struct NT {
         std::string name;
         double cap;
@@ -38,7 +42,7 @@ namespace spsp {
         std::map<std::string,sptr<NT>> neuron_templates;
 
         NeuronTemplates();
-        bool LoadDefaultTemplates();
+        void LoadDefaultTemplates();
         NT * GetNeuronTemplate(std::string name);
         bool AddNeuronTemplate(uptr<NT> nt);
         bool AddNeuronTemplate(std::string name,

@@ -51,10 +51,10 @@ public:
         x += vx*dt;
         y += vy*dt;
 
-        x_pos->SetSignal(x);
-        x_neg->SetSignal(x);
-        y_pos->SetSignal(y);
-        y_neg->SetSignal(y);
+        x_pos->SetSignal(time,x);
+        x_neg->SetSignal(time,x);
+        y_pos->SetSignal(time,y);
+        y_neg->SetSignal(time,y);
 
         this->setPosition(x,y);
     }
@@ -91,10 +91,10 @@ public:
             S->AddInputSynapse(leader->y_pos);
     } 
     virtual void Update(float dt, uint64_t time) override {
-        x_pos->SetSignal(x);
-        x_neg->SetSignal(x);
-        y_pos->SetSignal(y);
-        y_neg->SetSignal(y);
+        x_pos->SetSignal(time,x);
+        x_neg->SetSignal(time,x);
+        y_pos->SetSignal(time,y);
+        y_neg->SetSignal(time,y);
 
         E->Update(time); W->Update(time); S->Update(time); N->Update(time);
         float dx = (E->GetCurrentOutput()-W->GetCurrentOutput())*dt*FOLLOWER_SPEED_X;
@@ -185,7 +185,7 @@ int main(int argc, char**argv) {
                     case sf::Keyboard::A: leader->MoveW(time_elapsed); break;
                     case sf::Keyboard::S: leader->MoveS(time_elapsed); break;
                     case sf::Keyboard::D: leader->MoveE(time_elapsed); break;
-                        
+                    default: break;
                 }
             }
         }

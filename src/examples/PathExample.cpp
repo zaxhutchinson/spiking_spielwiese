@@ -8,10 +8,10 @@
 #include<SFML/Graphics.hpp>
 
 #include"spspdef.hpp"
+#include"Point.hpp"
 #include"Neuron.hpp"
 #include"Synapse.hpp"
 #include"NTemplate.hpp"
-#include"bresenham.hpp"
 
 using namespace spsp;
 
@@ -238,7 +238,7 @@ struct Agent : public sf::CircleShape {
         close = false;
 
         forward_impulse = std::make_shared<SimpleSynapse>(FORWARD_IMPULSE_WEIGHT);
-        forward_impulse->SetSignal(1.0);
+        forward_impulse->SetSignal(0,1.0);
 
         forward_impact_left = std::make_shared<SimpleSynapse>(0.0);
         forward_impact_right = std::make_shared<SimpleSynapse>(0.0);
@@ -246,7 +246,7 @@ struct Agent : public sf::CircleShape {
         eye_forward.nerve = std::make_shared<SimpleSynapse>(FORWARD_EYE_WEIGHT);
         float leye_offset = LEFT_EYE_SPACING;
         float reye_offset = RIGHT_EYE_SPACING;
-        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+        for(unsigned i = 0; i < NUM_SIDE_EYES; i++) {
 
             // MAKE LEFT EYE
             Eye le;
@@ -258,7 +258,7 @@ struct Agent : public sf::CircleShape {
 
             neurons_left.push_back(std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking")));
             neurons_left[i]->SetAlphaBase(ALPHABASE);
-            neurons_left[i]->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
+            //neurons_left[i]->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
 
             neurons_left[i]->AddInputSynapse(eyes_left[i].nerve);
             neurons_left[i]->AddInputSynapse(goals_left[i]);
@@ -282,7 +282,7 @@ struct Agent : public sf::CircleShape {
 
             neurons_right.push_back(std::make_unique<Neuron>(nt.GetNeuronTemplate("RegularSpiking")));
             neurons_right[i]->SetAlphaBase(ALPHABASE);
-            neurons_right[i]->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
+            //neurons_right[i]->EnableNoise(NoiseType::Uniform,0.0,1.0,rng());
 
             neurons_right[i]->AddInputSynapse(eyes_right[i].nerve);
             neurons_right[i]->AddInputSynapse(goals_right[i]);
@@ -309,11 +309,12 @@ struct Agent : public sf::CircleShape {
     }
 
     void Turn(float amt) {
+        //std::cout << amt << std::endl;
         eye_forward.angle += amt;
         //if(eye_forward.angle < -M_PI) eye_forward.angle+=2.0*M_PI;
         //if(eye_forward.angle > M_PI) eye_forward.angle-=2.0*M_PI;
 
-        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+        for(unsigned i = 0; i < NUM_SIDE_EYES; i++) {
             eyes_left[i].angle = eye_forward.angle+left_eye_offsets[i];
             //if(eyes_left[i].angle < -M_PI) eyes_left[i].angle+=2.0*M_PI;
             //if(eyes_left[i].angle > M_PI) eyes_left[i].angle-=2.0*M_PI;
@@ -328,7 +329,10 @@ struct Agent : public sf::CircleShape {
 
     void Update(vec<Obstacle> & obstacles, Goal goal, float dt, uint64_t time) {
 
-        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+        double left_sum=0.0;
+        double right_sum=0.0;
+
+        for(unsigned i = 0; i < NUM_SIDE_EYES; i++) {
             eyes_left_max[i] = Point(
                 loc.x+std::cos(eyes_left[i].angle)*GetMaxSight(i),
                 loc.y+std::sin(eyes_left[i].angle)*GetMaxSight(i)
@@ -361,17 +365,22 @@ struct Agent : public sf::CircleShape {
             }
 
             float left_signal = ((1.0-rdist/GetMaxSight(i))+(ldist/GetMaxSight(i)))*EYE_INPUT_WEIGHT;
-            eyes_left[i].nerve->SetSignal(left_signal);
+            eyes_left[i].nerve->SetSignal(time,left_signal);
 
             float right_signal = ((1.0-ldist/GetMaxSight(i))+(rdist/GetMaxSight(i)))*EYE_INPUT_WEIGHT;
-            eyes_right[i].nerve->SetSignal(right_signal);
+            eyes_right[i].nerve->SetSignal(time,right_signal);
+
+            left_sum+=left_signal;
+            right_sum+=right_signal;
 
             angle_to_goal = std::atan2(goal.loc.y-loc.y, goal.loc.x-loc.x);
             heading_correction = angle_to_goal-heading;
-            if(heading_correction > 0) goals_right[i]->SetSignal(heading_correction);
-            else if(heading_correction < 0) goals_left[i]->SetSignal(-heading_correction);
+            if(heading_correction > 0) goals_right[i]->SetSignal(time,heading_correction);
+            else if(heading_correction < 0) goals_left[i]->SetSignal(time,-heading_correction);
 
         }
+
+       
 
         eye_forward_max = Point(
             loc.x+std::cos(eye_forward.angle)*GetMaxSight(0),
@@ -404,25 +413,26 @@ struct Agent : public sf::CircleShape {
             dynamic_cast<SimpleSynapse*>(forward_impact_right.get())->SetWeight(0.0);
         }
 
-        forward_impact_left->SetSignal( (1.0-(dist_forward/GetMaxSight(0))) );
-        forward_impact_right->SetSignal( (1.0-(dist_forward/GetMaxSight(0))) );
+        forward_impact_left->SetSignal( time,(1.0-(dist_forward/GetMaxSight(0))) );
+        forward_impact_right->SetSignal( time,(1.0-(dist_forward/GetMaxSight(0))) );
         
-        eye_forward.nerve->SetSignal( (1.0-(dist_forward/GetMaxSight(0))) *EYE_INPUT_WEIGHT);
+        eye_forward.nerve->SetSignal( time,(1.0-(dist_forward/GetMaxSight(0))) *EYE_INPUT_WEIGHT);
 
         float left_turn_sum = 0.0f;
         float right_turn_sum = 0.0f;
 
-        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+        for(unsigned i = 0; i < NUM_SIDE_EYES; i++) {
             neurons_left[i]->Update(time);
             neurons_right[i]->Update(time);
 
-            left_turn_sum += neurons_left[i]->GetCurrentOutputNormalized();
-            right_turn_sum += neurons_right[i]->GetCurrentOutputNormalized();    
+            left_turn_sum += neurons_left[i]->GetCurrentOutput();
+            right_turn_sum += neurons_right[i]->GetCurrentOutput();    
         }
-
+        
+        //std::cout << right_turn_sum << " " << left_turn_sum << std::endl;
         Turn((right_turn_sum-left_turn_sum)*dt);
         
-        float speed = neuron_forward->GetCurrentOutputNormalized()*dt*AGENT_SPEED;
+        float speed = neuron_forward->GetCurrentOutput()*dt*AGENT_SPEED;
 
         float new_x = std::cos(heading)*speed;
         float new_y = std::sin(heading)*speed;
@@ -466,7 +476,6 @@ int main(int argc, char**argv) {
     sf::Event event;
     bool run=true;
     bool pause =true;
-    bool leader_lines=false;
 
     std::random_device rd;
     std::mt19937_64 rng(rd());
@@ -533,6 +542,7 @@ int main(int argc, char**argv) {
                     case sf::Keyboard::Down: ShiftObjects(0.0f,-SHIFT_AMT,goal,agent,obstacles); break;
                     case sf::Keyboard::Left: ShiftObjects(SHIFT_AMT,0.0f,goal,agent,obstacles); break;
                     case sf::Keyboard::Right: ShiftObjects(-SHIFT_AMT,0.0f,goal,agent,obstacles); break;
+                    default: break;
                 }
             }
         }
@@ -554,17 +564,17 @@ int main(int argc, char**argv) {
         //     600.0f,20.0f);   
 
         PrintMsg(window,text,"TIME:    "+std::to_string(time),400.0f,2.0f);
-        // PrintMsg(window,text,"HEADING: "+std::to_string(agent.heading),400.0f,20.0f);
-        // PrintMsg(window,text,"GOAL   : "+std::to_string(agent.angle_to_goal),400.0f,40.0f);
-        // //PrintMsg(window,text,"A:LEFT   : "+std::to_string(agent.eye_left.nerve->GetSignal()),400.0f,60.0f);
-        // //PrintMsg(window,text,"A:RIGHT  : "+std::to_string(agent.eye_right.nerve->GetSignal()),400.0f,80.0f);
-        // PrintMsg(window,text,"A:FORWARD: "+std::to_string(agent.eye_forward.nerve->GetSignal()),400.0f,100.0f);
-        // //PrintMsg(window,text,"N:LEFT   : "+std::to_string(agent.turn_left->GetCurrentOutputNormalized()),400.0f,120.0f);
-        // //PrintMsg(window,text,"N:RIGHT  : "+std::to_string(agent.turn_right->GetCurrentOutputNormalized()),400.0f,140.0f);
-        // PrintMsg(window,text,"N:FORWARD: "+std::to_string(agent.neuron_forward->GetCurrentOutputNormalized()),400.0f,160.0f);
-        // PrintMsg(window,text,"H:CORRECT: "+std::to_string(agent.heading_correction),400.0f,180.0f);
+        PrintMsg(window,text,"HEADING: "+std::to_string(agent.heading),400.0f,20.0f);
+        PrintMsg(window,text,"GOAL   : "+std::to_string(agent.angle_to_goal),400.0f,40.0f);
+        //PrintMsg(window,text,"A:LEFT   : "+std::to_string(agent.eye_left.nerve->GetSignal()),400.0f,60.0f);
+        //PrintMsg(window,text,"A:RIGHT  : "+std::to_string(agent.eye_right.nerve->GetSignal()),400.0f,80.0f);
+        PrintMsg(window,text,"A:FORWARD: "+std::to_string(agent.eye_forward.nerve->GetSignal(time)),400.0f,100.0f);
+        //PrintMsg(window,text,"N:LEFT   : "+std::to_string(agent.turn_left->GetCurrentOutput()),400.0f,120.0f);
+        //PrintMsg(window,text,"N:RIGHT  : "+std::to_string(agent.turn_right->GetCurrentOutput()),400.0f,140.0f);
+        PrintMsg(window,text,"N:FORWARD: "+std::to_string(agent.neuron_forward->GetCurrentOutput()),400.0f,160.0f);
+        PrintMsg(window,text,"H:CORRECT: "+std::to_string(agent.heading_correction),400.0f,180.0f);
 
-        for(int i = 0; i < NUM_SIDE_EYES; i++) {
+        for(unsigned i = 0; i < NUM_SIDE_EYES; i++) {
 
             sf::Vertex left[] = {
                 sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
@@ -590,7 +600,7 @@ int main(int argc, char**argv) {
         
         window.draw(forward,2,sf::Lines);
 
-        for(int i = 0; i < obstacles.size(); i++) {
+        for(unsigned i = 0; i < obstacles.size(); i++) {
             obstacles[i].Draw(window,scale);
             //window.draw(obstacles[i]);
         }
@@ -599,7 +609,7 @@ int main(int argc, char**argv) {
         //window.draw(goal);
         //window.draw(agent);
 
-       // for(int i = 0;i < bees.size();i++) {
+       // for(unsigned i = 0;i < bees.size();i++) {
         //    bees[i]->Draw(window,scale);
         //}
 
@@ -636,7 +646,7 @@ void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x,
 void ShiftObjects(float x, float y, Goal & goal, Agent & agent, vec<Obstacle> & obstacles) {
     goal.ShiftPosition(x,y);
     agent.ShiftPosition(x,y);
-    for(int i = 0; i < obstacles.size(); i++) {
+    for(unsigned i = 0; i < obstacles.size(); i++) {
         obstacles[i].ShiftPosition(x,y);
     }
 }
@@ -647,7 +657,7 @@ float GetMaxSight(int position) {
 void ObstacleScenario000(std::mt19937_64 & rng, vec<Obstacle> & obstacles) {
     std::uniform_real_distribution<float> xDist(500.0f,9500.0f);
     std::uniform_real_distribution<float> yDist(500.0f,9500.0f);
-    for(int i = 0; i < NUM_OBSTACLES; i++) {
+    for(unsigned i = 0; i < NUM_OBSTACLES; i++) {
         float x = xDist(rng);
         float y = yDist(rng);
         Point tl(x-100.0f,y-100.0f);

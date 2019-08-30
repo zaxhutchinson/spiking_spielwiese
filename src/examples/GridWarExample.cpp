@@ -193,7 +193,8 @@ int main() {
                     case sf::Keyboard::Up:
                         wait_time+=10; break;
                     case sf::Keyboard::Down:
-                        if(wait_time>0) wait_time-=10; break;
+                        if(wait_time>0) {wait_time-=10;} break;
+                    default: break;
                 }
             }
         }
@@ -211,8 +212,6 @@ int main() {
             }
         }
         UpdateNetwork(network,playerOrderDist,rng,energy,time);
-
-        fout << std::to_string(energy[0]).c_str() << std::endl;
 
         //--------------------------------------------------
         // DRAW
@@ -290,8 +289,6 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
     // N,S,E,W
     int xoff[4]={0,0,1,-1};
     int yoff[4]={-1,1,0,0};
-    int to[4]={0,1,2,3};
-    int from[4]={1,0,3,2};
 
     // Generate the neurons and inhibitory connections
     for(int x = 0; x < GRID_SIZE_X; x++) {
@@ -409,8 +406,6 @@ void DrawNetwork2(sf::RenderWindow & window,
                             int player) {
     sf::RectangleShape rs(sf::Vector2f(SQUARE_SIZE,SQUARE_SIZE));
 
-    sf::Color color = colors[player];
-
     for(int x = 0; x < GRID_SIZE_X; x++) {
         for(int y = 0; y < GRID_SIZE_Y; y++) {
             for(int i = 0; i < NUM_PLAYERS; i++) {
@@ -431,9 +426,9 @@ void AddPlayerToNetwork(vec<vec<vsptr<Neuron>>> & network,
                             sptr<Player> player,
                             int player_index) {
 
-    for(int i = 0; i < player->bases.size(); i++) {
+    for(unsigned i = 0; i < player->bases.size(); i++) {
 
-        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(1.0,2);
+        sptr<Synapse> syn = std::make_shared<SimpleSynapse>(1.0,1);
         player->synapses.push_back(syn);
         player->inputs.push_back(STARTING_INPUT);
 
@@ -445,13 +440,13 @@ void AddPlayerToNetwork(vec<vec<vsptr<Neuron>>> & network,
     }
 }
 void StartPlayer(sptr<Player> player) {
-    for(int i = 0; i < player->synapses.size(); i++) {
-        player->synapses[i]->SetSignal(i,player->inputs[i]);
+    for(unsigned i = 0; i < player->synapses.size(); i++) {
+        player->synapses[i]->SetSignal(0,player->inputs[i]);
     }
 }
 void StopPlayer(sptr<Player> player) {
-    for(int i = 0; i < player->synapses.size(); i++) {
-        player->synapses[i]->SetSignal(i,0.0);
+    for(unsigned i = 0; i < player->synapses.size(); i++) {
+        player->synapses[i]->SetSignal(0,0.0);
     }
 }
 void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
@@ -459,7 +454,10 @@ void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
                             std::mt19937_64 & rng,
                             vec<double> & energy,
                             uint64_t time) {
+
+    
     #pragma omp parallel for shared(energy)
+    
     for(int x = GRID_SIZE_X-1; x >= 0; x--) {
         for(int y = GRID_SIZE_Y-1; y >= 0; y--) {
             //int first = dist(rng);
@@ -468,6 +466,7 @@ void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
                 network[x][y][i]->Update(time);
                 #pragma omp atomic
                 energy[i] += network[x][y][i]->GetCurrentOutputNormalized();
+                
             }
         }
     }

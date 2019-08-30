@@ -1,9 +1,9 @@
 CC=g++
 
 # DEBUG
-CFLAGS= -c -std=c++14 -fopenmp -g3
+#CFLAGS= -c -std=c++14 -fopenmp -g3
 # RELEASE
-CFLAGS= -c -std=c++14 -fopenmp -O3
+CFLAGS= -c -std=c++14 -fopenmp -O3 -Wall
 
 LFLAGS= -lm -lsfml-graphics -lsfml-window -lsfml-system -fopenmp
 SRCDIR= src
@@ -51,7 +51,7 @@ target: clean_examples libspsp target_example
 		-o target_example \
 		$(LFLAGS)
 
-path: clean_examples libspsp path_example
+path: clean_examples libspsp path_example point
 	$(CC) \
 		$(OBJDIR)/*/*.o \
 		-o path_example \
@@ -84,6 +84,10 @@ $(OBJDIR)/$(EXPDIR)/FollowExample.o: $(SRCDIR)/$(EXPDIR)/FollowExample.cpp
 trace_example: $(OBJDIR)/$(EXPDIR)/TraceExample.o
 $(OBJDIR)/$(EXPDIR)/TraceExample.o: $(SRCDIR)/$(EXPDIR)/TraceExample.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/TraceExample.cpp -o $(OBJDIR)/$(EXPDIR)/TraceExample.o
+
+point: $(OBJDIR)/$(EXPDIR)/Point.o
+$(OBJDIR)/$(EXPDIR)/Point.o: $(SRCDIR)/$(EXPDIR)/Point.cpp
+	$(CC) $(CFLAGS) $(INCLUDE) $(SRCDIR)/$(EXPDIR)/Point.cpp -o $(OBJDIR)/$(EXPDIR)/Point.o
 
 libspsp: neuron ntemplate synapse
 

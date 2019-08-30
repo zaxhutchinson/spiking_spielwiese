@@ -51,6 +51,7 @@ namespace spsp {
             current_output=other.current_output;
             i_syn= std::move(other.i_syn); other.i_syn.clear();
             o_syn= std::move(other.o_syn); other.o_syn.clear();
+
             noise=other.noise; 
             uniform_dist=other.uniform_dist;
             normal_dist=other.normal_dist;
@@ -69,7 +70,7 @@ namespace spsp {
         
         // Euler Method
         v = v_prev + (k * (v_prev-vr) * (v_prev-vt) - u +
-            baseline + Input(time) + noise()) / cap;
+            baseline + Input(time) + noise() ) / cap;
         u = u + a * (b *(v_prev-vr) - u);
         v_prev = v;
 
@@ -117,7 +118,7 @@ namespace spsp {
     }
 
     void Neuron::Output(uint64_t time) {
-        double c_output = GetCurrentOutputNormalized();
+        double c_output = GetCurrentOutput();
         for(lsptr<Synapse>::iterator it = o_syn.begin();
                 it != o_syn.end(); ) {
             if(!(*it)->GetActive()) {
@@ -129,21 +130,7 @@ namespace spsp {
         }
     }
 
-    void Neuron::EnableNoise(NoiseType type, long seed, double val_a, double val_b) {
-        EnableNoise(type,std::make_shared<std::mt19937_64>(seed),val_a,val_b);
-    }
-    void Neuron::EnableNoise(NoiseType type, sptr<std::mt19937_64> rng, double val_a, double val_b){
-        this->rng = rng;
-        if(type==NoiseType::Normal) {
-            normal_dist = std::normal_distribution<double>(val_a,val_b);
-            noise = std::bind(&Neuron::normal_noise,this);
-        } else if(type==NoiseType::Uniform) {
-            uniform_dist = std::uniform_real_distribution<double>(val_a,val_b);
-            noise = std::bind(&Neuron::uniform_noise,this);
-        } else {
-            noise = std::bind(&Neuron::no_noise,this);
-        }
-    }
+    
 
     void Neuron::SetAlphaBase(double alphabase) {
         this->alphabase = alphabase;
@@ -157,15 +144,7 @@ namespace spsp {
         o_syn.push_back(synapse);
     }   
 
-    double Neuron::no_noise() {
-        return 0.0;
-    }
-    double Neuron::uniform_noise() {
-        return uniform_dist(*rng);
-    }
-    double Neuron::normal_noise() {
-        return normal_dist(*rng);
-    }
+    
 
     double Neuron::Input(uint64_t time) {
         double input = 0.0;
@@ -190,4 +169,29 @@ namespace spsp {
     }
 
     double Neuron::C() { return c; }
+
+    void Neuron::EnableNoise(NoiseType type, long seed, double val_a, double val_b) {
+        EnableNoise(type,std::make_shared<std::mt19937_64>(seed),val_a,val_b);
+    }
+    void Neuron::EnableNoise(NoiseType type, sptr<std::mt19937_64> rng, double val_a, double val_b){
+        this->rng = rng;
+        if(type==NoiseType::Normal) {
+            normal_dist = std::normal_distribution<double>(val_a,val_b);
+            noise = std::bind(&Neuron::normal_noise,this);
+        } else if(type==NoiseType::Uniform) {
+            uniform_dist = std::uniform_real_distribution<double>(val_a,val_b);
+            noise = std::bind(&Neuron::uniform_noise,this);
+        } else {
+            noise = std::bind(&Neuron::no_noise,this);
+        }
+    }
+    double Neuron::no_noise() {
+        return 0.0;
+    }
+    double Neuron::uniform_noise() {
+        return uniform_dist(*rng);
+    }
+    double Neuron::normal_noise() {
+        return normal_dist(*rng);
+}
 }

@@ -283,7 +283,7 @@ int main() {
     std::uniform_int_distribution<int> reloadDist(0,RELOAD_TIME);
 
     vsptr<Follower> followers;
-    for(int i = 0; i < num_followers; i++) {
+    for(unsigned i = 0; i < num_followers; i++) {
         followers.push_back(std::make_shared<Follower>(
             dist(rng),dist(rng),templates,leader,
             reloadDist(rng)
@@ -310,11 +310,12 @@ int main() {
                     case sf::Keyboard::Up:
                         wait_time+=10; break;
                     case sf::Keyboard::Down:
-                        if(wait_time>0) wait_time-=10; break;
+                        if(wait_time>0) {wait_time-=10;} break;
                     case sf::Keyboard::W: leader->MoveN(time_elapsed); break;
                     case sf::Keyboard::A: leader->MoveW(time_elapsed); break;
                     case sf::Keyboard::S: leader->MoveS(time_elapsed); break;
                     case sf::Keyboard::D: leader->MoveE(time_elapsed); break;
+                    default: break;
                 }
             }
         }
@@ -322,7 +323,7 @@ int main() {
         //--------------------------------------------------
         // UPDATE
         leader->Update(time_elapsed, time);
-        for(int i = 0; i < num_followers; i++) {
+        for(unsigned i = 0; i < num_followers; i++) {
             bool fired = followers[i]->Update(time_elapsed, time);
             if(fired) {
                 sptr<Turret> turret = followers[i]->GetTurret();
@@ -352,11 +353,11 @@ int main() {
 
         window.clear(sf::Color::Black);
 
-        for(int i = 0; i < num_followers; i++) {
+        for(unsigned i = 0; i < num_followers; i++) {
             window.draw(*(followers[i]));
             window.draw(*(followers[i]->turret));
         }
-        for(int i = 0; i < projectiles.size(); i++) {
+        for(unsigned i = 0; i < projectiles.size(); i++) {
             window.draw(*projectiles[i]);
         }
         window.draw(*leader);

@@ -6,7 +6,7 @@ namespace spsp {
         LoadDefaultTemplates();
     }
 
-    bool NeuronTemplates::LoadDefaultTemplates() {
+    void NeuronTemplates::LoadDefaultTemplates() {
         // Regular Spiking
         sptr<NT> nt = std::make_unique<NT>();
         nt->name="RegularSpiking";
