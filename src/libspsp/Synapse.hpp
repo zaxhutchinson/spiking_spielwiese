@@ -33,8 +33,8 @@ namespace spsp {
 
         bool GetActive() const;
         void SetActive(bool active);
-        double GetSignal() const;
-        void SetSignal(double signal);
+        double GetSignal(uint64_t time) const;
+        void SetSignal(uint64_t time, double signal);
         void RegisterNewPreSpike(uint64_t time);
         void RegisterNewPostSpike(uint64_t time);
 
@@ -44,11 +44,10 @@ namespace spsp {
     private:
         virtual bool do_GetActive() const = 0;
         virtual void do_SetActive(bool active) = 0;
-        virtual double do_GetSignal() const = 0;
-        virtual void do_SetSignal(double signal) = 0;
+        virtual double do_GetSignal(uint64_t time) const = 0;
+        virtual void do_SetSignal(uint64_t time, double signal) = 0;
         virtual void do_RegisterNewPreSpike(uint64_t time) = 0;
         virtual void do_RegisterNewPostSpike(uint64_t time) = 0;
-
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -65,8 +64,6 @@ namespace spsp {
         void SetWeight(double weight);
         uint64_t GetDelay();
         void SetDelay(uint64_t delay);
-        uint64_t GetTime() const;
-        void SetTime(uint64_t time);
         uint64_t GetSignalHistorySize() const;
         void SetSignalHistorySize(uint64_t size);
         const uint64_t * GetPreSpikeTime() const;
@@ -79,8 +76,8 @@ namespace spsp {
     protected:
         bool do_GetActive() const final;
         void do_SetActive(bool active) final;
-        double do_GetSignal() const final;
-        void do_SetSignal(double signal) override;
+        double do_GetSignal(uint64_t time) const final;
+        void do_SetSignal(uint64_t time, double signal) override;
         void do_RegisterNewPreSpike(uint64_t time) override;
         void do_RegisterNewPostSpike(uint64_t time) override;
 
@@ -88,7 +85,6 @@ namespace spsp {
         bool active;
         double weight;
         uint64_t delay;
-        uint64_t time;
         uint64_t signal_history_size;
         vec<double> signal;
         uptr<uint64_t> pre_spike_time;
@@ -115,7 +111,7 @@ namespace spsp {
 
 
     private:
-        void do_SetSignal(double signal) final;
+        void do_SetSignal(uint64_t time, double signal) final;
         void do_RegisterNewPreSpike(uint64_t time) final;
         void do_RegisterNewPostSpike(uint64_t time) final;
 
@@ -143,8 +139,8 @@ namespace spsp {
     protected:
         bool do_GetActive() const final;
         void do_SetActive(bool active) final;
-        double do_GetSignal() const final;
-        void do_SetSignal(double signal) final;
+        double do_GetSignal(uint64_t time) const final;
+        void do_SetSignal(uint64_t time, double signal) final;
         void do_RegisterNewPreSpike(uint64_t time) override;
         void do_RegisterNewPostSpike(uint64_t time) override;
     

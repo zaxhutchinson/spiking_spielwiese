@@ -144,10 +144,10 @@ int main(int argc, char**argv) {
         }
         //--------------------------------------------------
         // UPDATE
-        network->s1->SetSignal(exin);
+        network->s1->SetSignal(time,exin);
         network->n1->Update(time);
         v[time%1000] = network->n1->V();
-        output[time%1000] = network->s2->GetSignal();
+        output[time%1000] = network->s2->GetSignal(time);
         //--------------------------------------------------
         // DRAW
         window.clear(sf::Color::Black);
@@ -247,7 +247,7 @@ void PrintGrid(sf::RenderWindow & win, sf::Text & text) {
     PrintMsg(win,text,"-200",1055.0f,890.0f,sf::Color::Cyan);
 
     text.rotate(90.0f);
-    PrintMsg(win,text,"V (pA)",1095.0f,490.0f,sf::Color::Cyan);
+    PrintMsg(win,text,"V (mV)",1095.0f,490.0f,sf::Color::Cyan);
     text.rotate(-90.0f);
 }
 

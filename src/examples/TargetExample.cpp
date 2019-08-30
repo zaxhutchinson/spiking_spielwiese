@@ -62,14 +62,14 @@ public:
         x += vx*dt;
         y += vy*dt;
 
-        x_pos->SetSignal(x);
-        x_neg->SetSignal(x);
-        y_pos->SetSignal(y);
-        y_neg->SetSignal(y);
-        x_pos_sig->SetSignal(x);
-        x_neg_sig->SetSignal(x);
-        y_pos_sig->SetSignal(y);
-        y_neg_sig->SetSignal(y);
+        x_pos->SetSignal(time,x);
+        x_neg->SetSignal(time,x);
+        y_pos->SetSignal(time,y);
+        y_neg->SetSignal(time,y);
+        x_pos_sig->SetSignal(time,x);
+        x_neg_sig->SetSignal(time,x);
+        y_pos_sig->SetSignal(time,y);
+        y_neg_sig->SetSignal(time,y);
 
         this->setPosition(x,y);
         return true;
@@ -121,10 +121,10 @@ public:
             reload_time=init_reload;
     } 
     virtual bool Update(float dt, uint64_t time) override {
-        x_pos->SetSignal(x);
-        x_neg->SetSignal(x);
-        y_pos->SetSignal(y);
-        y_neg->SetSignal(y);
+        x_pos->SetSignal(time,x);
+        x_neg->SetSignal(time,x);
+        y_pos->SetSignal(time,y);
+        y_neg->SetSignal(time,y);
 
         E->Update(time); W->Update(time); S->Update(time); N->Update(time);
         tx = (E->GetCurrentOutput()-W->GetCurrentOutput());
@@ -182,10 +182,10 @@ public:
             turret = std::make_shared<Turret>(x,y,templates,leader,init_reload);
     } 
     virtual bool Update(float dt, uint64_t time) override {
-        x_pos->SetSignal(x);
-        x_neg->SetSignal(x);
-        y_pos->SetSignal(y);
-        y_neg->SetSignal(y);
+        x_pos->SetSignal(time,x);
+        x_neg->SetSignal(time,x);
+        y_pos->SetSignal(time,y);
+        y_neg->SetSignal(time,y);
 
         E->Update(time); W->Update(time); S->Update(time); N->Update(time);
         float dx = (E->GetCurrentOutput()-W->GetCurrentOutput());

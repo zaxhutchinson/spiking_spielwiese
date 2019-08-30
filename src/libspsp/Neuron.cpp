@@ -69,7 +69,7 @@ namespace spsp {
         
         // Euler Method
         v = v_prev + (k * (v_prev-vr) * (v_prev-vt) - u +
-            baseline + Input() + noise()) / cap;
+            baseline + Input(time) + noise()) / cap;
         u = u + a * (b *(v_prev-vr) - u);
         v_prev = v;
 
@@ -83,7 +83,7 @@ namespace spsp {
             UpdateSpikes(false);
         }
 
-        Output();
+        Output(time);
     }
 
     void Neuron::UpdateSpikes(bool new_spike) {
@@ -116,14 +116,14 @@ namespace spsp {
         }
     }
 
-    void Neuron::Output() {
+    void Neuron::Output(uint64_t time) {
         double c_output = GetCurrentOutputNormalized();
         for(lsptr<Synapse>::iterator it = o_syn.begin();
                 it != o_syn.end(); ) {
             if(!(*it)->GetActive()) {
                 //it = o_syn.erase(it);
             } else {
-                (*it)->SetSignal(c_output);
+                (*it)->SetSignal(time, c_output);
                 it++;
             }
         }
@@ -167,13 +167,13 @@ namespace spsp {
         return normal_dist(*rng);
     }
 
-    double Neuron::Input() {
+    double Neuron::Input(uint64_t time) {
         double input = 0.0;
         for(lsptr<Synapse>::iterator it = i_syn.begin(); it != i_syn.end(); ) {
             if(!(*it)->GetActive()) {
                 //it = i_syn.erase(it);
             } else {
-                input += (*it)->GetSignal();
+                input += (*it)->GetSignal(time);
                 it++;
             }
         }

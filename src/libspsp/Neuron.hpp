@@ -52,10 +52,10 @@ namespace spsp {
         void AddOutputSynapse(sptr<Synapse> synapse);
 
         // Sums synaptic input signals
-        double Input();
+        double Input(uint64_t time);
 
         // Sends current output to all output synapses
-        void Output();
+        void Output(uint64_t time);
 
         // Get current v, u, and output
         double V();

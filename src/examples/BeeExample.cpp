@@ -100,10 +100,10 @@ struct Bee : public sf::CircleShape
         }
     }
     void Update(float dt, uint64_t time) {
-        x_pos->SetSignal(x);
-        x_neg->SetSignal(x);
-        y_pos->SetSignal(y);
-        y_neg->SetSignal(y);
+        x_pos->SetSignal(time,x);
+        x_neg->SetSignal(time,x);
+        y_pos->SetSignal(time,y);
+        y_neg->SetSignal(time,y);
 
         E->Update(time); W->Update(time); S->Update(time); N->Update(time);
         float dx = (E->GetCurrentOutput()-W->GetCurrentOutput())*dt*SPEED;
