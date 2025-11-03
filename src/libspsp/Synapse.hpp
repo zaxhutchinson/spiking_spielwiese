@@ -14,6 +14,7 @@ functionality provides the necessary information to the Neuron class.
 #define SYNAPSE_HPP
 
 #include<cmath>
+#include<cstdint>
 
 #include"spspdef.hpp"
 

@@ -3,6 +3,7 @@
 #include<chrono>
 #include<thread>
 #include<cmath>
+#include<array>
 
 #include<SFML/Graphics.hpp>
 
@@ -30,6 +31,7 @@ void PrintHeader(sf::RenderWindow & win, sf::Text & text);
 
 
 ///////////////////////////////////////////////////////////////////
+const double ALPHA_BASE = 1.0;
 const int num_neuron_types = 7;
 std::string neuron_types[] = {
     "RegularSpiking",
@@ -42,30 +44,30 @@ std::string neuron_types[] = {
 };
 
 sf::Vertex borders[] = {
-    sf::Vertex(sf::Vector2f(50,100)),       // LEFT
-    sf::Vertex(sf::Vector2f(50,900)),
-    sf::Vertex(sf::Vector2f(1050,100)),     // RIGHT
-    sf::Vertex(sf::Vector2f(1050,900)),
-    sf::Vertex(sf::Vector2f(50,100)),       // TOP
-    sf::Vertex(sf::Vector2f(1050,100)),
-    sf::Vertex(sf::Vector2f(50,900)),       // BOTTOM
-    sf::Vertex(sf::Vector2f(1050,900))
+    sf::Vertex{sf::Vector2f(50.f,100.f)},       // LEFT
+    sf::Vertex{sf::Vector2f(50,900)},
+    sf::Vertex{sf::Vector2f(1050,100)},     // RIGHT
+    sf::Vertex{sf::Vector2f(1050,900)},
+    sf::Vertex{sf::Vector2f(50,100)},       // TOP
+    sf::Vertex{sf::Vector2f(1050,100)},
+    sf::Vertex{sf::Vector2f(50,900)},       // BOTTOM
+    sf::Vertex{sf::Vector2f(1050,900)}
 };
 sf::Vertex hmarkers[] = {
-    sf::Vertex(sf::Vector2f(50,800)),       // ONE
-    sf::Vertex(sf::Vector2f(1050,800)),
-    sf::Vertex(sf::Vector2f(50,700)),       // TWO
-    sf::Vertex(sf::Vector2f(1050,700)),
-    sf::Vertex(sf::Vector2f(50,600)),       // THREE
-    sf::Vertex(sf::Vector2f(1050,600)),
-    sf::Vertex(sf::Vector2f(50,500)),       // FOUR
-    sf::Vertex(sf::Vector2f(1050,500)),
-    sf::Vertex(sf::Vector2f(50,400)),       // FIVE
-    sf::Vertex(sf::Vector2f(1050,400)),     
-    sf::Vertex(sf::Vector2f(50,300)),       // SIX
-    sf::Vertex(sf::Vector2f(1050,300)),
-    sf::Vertex(sf::Vector2f(50,200)),       // SEVEN
-    sf::Vertex(sf::Vector2f(1050,200))
+    sf::Vertex{sf::Vector2f(50,800)},       // ONE
+    sf::Vertex{sf::Vector2f(1050,800)},
+    sf::Vertex{sf::Vector2f(50,700)},       // TWO
+    sf::Vertex{sf::Vector2f(1050,700)},
+    sf::Vertex{sf::Vector2f(50,600)},       // THREE
+    sf::Vertex{sf::Vector2f(1050,600)},
+    sf::Vertex{sf::Vector2f(50,500)},       // FOUR
+    sf::Vertex{sf::Vector2f(1050,500)},
+    sf::Vertex{sf::Vector2f(50,400)},       // FIVE
+    sf::Vertex{sf::Vector2f(1050,400)},     
+    sf::Vertex{sf::Vector2f(50,300)},       // SIX
+    sf::Vertex{sf::Vector2f(1050,300)},
+    sf::Vertex{sf::Vector2f(50,200)},       // SEVEN
+    sf::Vertex{sf::Vector2f(1050,200)}
 };
 
 
@@ -74,10 +76,10 @@ int main(int argc, char**argv) {
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
-    sf::Text text;
+    
     sf::Font font;
     sf::RenderWindow window;
-    sf::Event event;
+    // sf::Event event;
     bool run;
     uint64_t time=0;
     sf::CircleShape dot(2);
@@ -86,19 +88,22 @@ int main(int argc, char**argv) {
     double v[1000] = {0.0};
     int nt_index = 0;
 
-    if(!font.loadFromFile("resources/saxmono.ttf")) {
+    if(!font.openFromFile("resources/saxmono.ttf")) {
         std::cout << "DISPLAY: Unable to load font\n";
-    } else {
-        text.setFont(font);
-        text.setFillColor(sf::Color::White);
-        text.setCharacterSize(15);
+        return 1;
     }
+    sf::Text text(font);
+    text.setFont(font);
+    text.setFillColor(sf::Color::White);
+    text.setCharacterSize(15);
+    
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 4;
+    // sf::ContextSettings settings;
+    // settings.antialiasingLevel = 4;
 
-    window.create(sf::VideoMode(1100,1000),
-            "TEST SPSP",sf::Style::Titlebar,settings);
+    window.create(sf::VideoMode({1100,1000}),
+            "TEST SPSP",sf::Style::Titlebar);
+    window.setVerticalSyncEnabled(true);
 
     run = true;
     ///////////////////////////////////////////////////////////////
@@ -116,6 +121,8 @@ int main(int argc, char**argv) {
     sptr<Network> network = std::make_shared<Network>();
     BuildNetwork(network,templates,nt_index);
 
+    double alphabase = 1.0;
+
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
@@ -123,19 +130,32 @@ int main(int argc, char**argv) {
     while(run) {
         //--------------------------------------------------
         // INPUT
-        while(window.pollEvent(event)) {
-            if(event.type==sf::Event::KeyPressed) {
-                switch(event.key.code) {
-                    case sf::Keyboard::Q: run=false; break;
-                    case sf::Keyboard::Up: exin+=1.0; break;
-                    case sf::Keyboard::Down: exin-=1.0; break;
-                    case sf::Keyboard::Right: 
+        while(const std::optional event = window.pollEvent()) {
+            if(event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+            else if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                switch(keyPressed->scancode) {
+                    case sf::Keyboard::Scancode::Q: run=false; break;
+                    case sf::Keyboard::Scancode::Up: exin+=1.0; break;
+                    case sf::Keyboard::Scancode::Down: exin-=1.0; break;
+                    case sf::Keyboard::Scancode::Right: 
                         nt_index=(nt_index+1)%num_neuron_types;
                         BuildNetwork(network,templates,nt_index);
                         break;
-                    case sf::Keyboard::Left: 
+                    case sf::Keyboard::Scancode::Left: 
                         nt_index=(nt_index-1+num_neuron_types)%num_neuron_types;
                         BuildNetwork(network,templates,nt_index);
+                        break;
+                    case sf::Keyboard::Scancode::PageUp:
+                        alphabase += 0.1;
+                        network->n1->SetAlphaBase(alphabase);
+                        break;
+                    case sf::Keyboard::Scancode::PageDown:
+                        if(alphabase > 0.1) {
+                            alphabase -= 0.1;
+                        }
+                        network->n1->SetAlphaBase(alphabase);
                         break;
                     default: break;
                 }
@@ -155,6 +175,7 @@ int main(int argc, char**argv) {
         PrintMsg(window,text,"INPUT:  "+std::to_string(exin),5.0f,20.0f);
         PrintMsg(window,text,"OUTPUT: "+std::to_string(output[time%1000]),5.0f,35.0f,sf::Color::Yellow);
         PrintMsg(window,text,"V:      "+std::to_string(v[time%1000]),5.0f,50.0f,sf::Color::Cyan);
+        PrintMsg(window,text,"AlphaB: "+std::to_string(alphabase),5.0f,65.0f,sf::Color::Cyan);
         
         PrintHeader(window,text);
         PrintGrid(window,text);
@@ -179,6 +200,7 @@ void BuildNetwork(sptr<Network> network, NeuronTemplates & templates, int nt_ind
     network->s1 = std::make_shared<SimpleSynapse>(1.0);
     network->s2 = std::make_shared<SimpleSynapse>(1.0);
 
+    network->n1->SetAlphaBase(ALPHA_BASE);
     network->n1->AddInputSynapse(network->s1);
     network->n1->AddOutputSynapse(network->s2);
     //network->n2->AddInputSynapse(network->s2);
@@ -189,7 +211,7 @@ void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x,
 }
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y, sf::Color color) {
     text.setString(msg);
-    text.setPosition(x,y);
+    text.setPosition({x,y});
     text.setFillColor(color);
     win.draw(text);
 }
@@ -202,25 +224,25 @@ void PrintTrace(sf::RenderWindow & win, sf::CircleShape & dot, double output[], 
 
     for(int i = 1; i < 1000; i++) {
 
-        oline[0] = sf::Vector2f(static_cast<float>(i+50),(-output[i-1])*100.0f+900.0f); 
-        oline[1] = sf::Vector2f(static_cast<float>(i+51),(-output[i])*100.0f+900.0f); 
+        oline[0] = {sf::Vector2f(static_cast<float>(i+50),(-output[i-1])*100.0f+900.0f)}; 
+        oline[1] = {sf::Vector2f(static_cast<float>(i+51),(-output[i])*100.0f+900.0f)}; 
         oline[0].color = sf::Color::Yellow;
         oline[1].color = sf::Color::Yellow; 
 
-        vline[0] = sf::Vector2f(static_cast<float>(i+50),(-v[i-1])*2.0f+500.0f);
-        vline[1] = sf::Vector2f(static_cast<float>(i+51),(-v[i])*2.0f+500.0f);
+        vline[0] = {sf::Vector2f(static_cast<float>(i+50),(-v[i-1])*2.0f+500.0f)};
+        vline[1] = {sf::Vector2f(static_cast<float>(i+51),(-v[i])*2.0f+500.0f)};
         vline[0].color = sf::Color::Cyan;
         vline[1].color = sf::Color::Cyan;
         
-        win.draw(oline,2,sf::Lines);
-        win.draw(vline,2,sf::Lines);
+        win.draw(oline,2,sf::PrimitiveType::Lines);
+        win.draw(vline,2,sf::PrimitiveType::Lines);
     }
 }
 
 void PrintGrid(sf::RenderWindow & win, sf::Text & text) {
 
-    win.draw(borders,8,sf::Lines);
-    win.draw(hmarkers,14,sf::Lines);
+    win.draw(borders,8,sf::PrimitiveType::Lines);
+    win.draw(hmarkers,14,sf::PrimitiveType::Lines);
 
     PrintMsg(win,text,"0.0",25.0f,890.0f,sf::Color::Yellow);
     PrintMsg(win,text,"1.0",25.0f,790.0f,sf::Color::Yellow);
@@ -232,9 +254,9 @@ void PrintGrid(sf::RenderWindow & win, sf::Text & text) {
     PrintMsg(win,text,"7.0",25.0f,190.0f,sf::Color::Yellow);
     PrintMsg(win,text,"TIME (1 SEC IN MILLIS)",450.0f,910.0f);
 
-    text.rotate(-90.0f);
+    text.rotate(sf::degrees(-90.0f));
     PrintMsg(win,text,"OUTPUT",5.0f,525.0f,sf::Color::Yellow);
-    text.rotate(90.0f);
+    text.rotate(sf::degrees(90.0f));
 
     PrintMsg(win,text,"150",1055.0f,190.0f,sf::Color::Cyan);
     PrintMsg(win,text,"100",1055.0f,290.0f,sf::Color::Cyan);
@@ -245,9 +267,9 @@ void PrintGrid(sf::RenderWindow & win, sf::Text & text) {
     PrintMsg(win,text,"-150",1055.0f,790.0f,sf::Color::Cyan);
     PrintMsg(win,text,"-200",1055.0f,890.0f,sf::Color::Cyan);
 
-    text.rotate(90.0f);
+    text.rotate(sf::degrees(90.0f));
     PrintMsg(win,text,"V (mV)",1095.0f,490.0f,sf::Color::Cyan);
-    text.rotate(-90.0f);
+    text.rotate(sf::degrees(-90.0f));
 }
 
 void PrintHeader(sf::RenderWindow & win, sf::Text & text) {

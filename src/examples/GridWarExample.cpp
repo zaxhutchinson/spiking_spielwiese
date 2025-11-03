@@ -29,15 +29,15 @@ using namespace spsp;
 const int GRID_SIZE_X=100;
 const int GRID_SIZE_Y=100;
 const float CONN_PROB=1.0;
-const double INH_WEIGHT=-200.0;
-const double EXC_WEIGHT=540.0;//1015.0;
-const int NUM_PLAYERS=1;
+const double INH_WEIGHT=-50.0;
+const double EXC_WEIGHT=320.0;//1015.0;
+const int NUM_PLAYERS=3;
 const int PLAYER_INPUT_DURATION=1000;
-const double STARTING_INPUT=400.0;
+const double STARTING_INPUT=200.0;
 const double ALPHABASE=2.0;
 const float SQUARE_SIZE=7;
-const int COLOR_MIN=200;
-const int COLOR_MAX=210;
+const int COLOR_MIN=100;
+const int COLOR_MAX=240;
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
@@ -104,10 +104,10 @@ int main() {
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
-    sf::Text text;
+    
     sf::Font font;
     sf::RenderWindow window;
-    sf::Event event;
+    // sf::Event event;
     bool run=true;
     uint64_t time=0;
     std::random_device rd;
@@ -130,28 +130,30 @@ int main() {
         sptr<Player> p = std::make_shared<Player>(i);
         p->bases.push_back(Coord(xDist(rng),yDist(rng)));
         players.push_back(p);
-        player_colors.push_back(sf::Color(255,255,255));
+        player_colors.push_back(
+            sf::Color(colorDist(rng),colorDist(rng),colorDist(rng))
+        );
     }
 
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
 
-    if(!font.loadFromFile("resources/saxmono.ttf")) {
+    if(!font.openFromFile("resources/saxmono.ttf")) {
         std::cout << "DISPLAY: Unable to load font\n";
-    } else {
-        text.setFont(font);
-        text.setFillColor(sf::Color::White);
-        text.setCharacterSize(15);
+        return 1;
     }
+    sf::Text text(font);
+    text.setFillColor(sf::Color::White);
+    text.setCharacterSize(15);
+    
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 4;
+    // sf::ContextSettings settings;
+    // settings.antialiasingLevel = 4;
 
-    window.create(sf::VideoMode(1100,1000),
-            "TEST SPSP",sf::Style::Titlebar,settings);
+    window.create(sf::VideoMode({1100,1000}),
+            "TEST SPSP",sf::Style::Titlebar);
     window.setVerticalSyncEnabled(true);
-    window.setFramerateLimit(60);
 
     run = true;
     ///////////////////////////////////////////////////////////////
@@ -182,17 +184,20 @@ int main() {
         
         //--------------------------------------------------------
         // INPUT
-        while(window.pollEvent(event)) {
-            if(event.type==sf::Event::KeyPressed) {
-                switch(event.key.code) {
-                    case sf::Keyboard::Q: run=false; break;
-                    case sf::Keyboard::Left: 
+        while(const std::optional event = window.pollEvent()) {
+            if(event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+            else if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                switch(keyPressed->scancode) {
+                    case sf::Keyboard::Scancode::Q: run=false; break;
+                    case sf::Keyboard::Scancode::Left: 
                         player_index=(player_index-1+NUM_PLAYERS)%NUM_PLAYERS; break;
-                    case sf::Keyboard::Right: 
+                    case sf::Keyboard::Scancode::Right: 
                         player_index=(player_index+1)%NUM_PLAYERS; break;
-                    case sf::Keyboard::Up:
+                    case sf::Keyboard::Scancode::Up:
                         wait_time+=10; break;
-                    case sf::Keyboard::Down:
+                    case sf::Keyboard::Scancode::Down:
                         if(wait_time>0) {wait_time-=10;} break;
                     default: break;
                 }
@@ -326,8 +331,8 @@ void GenerateNetworkFromGrid(vec<vec<Cell>> & grid,
                 double exc_weight = EXC_WEIGHT;
                 
                 // WAVE PATTERN
-                if(i==2) exc_weight*=1.5;
-                else exc_weight*=0.85;
+                // if(i==2) exc_weight*=1.5;
+                // else exc_weight*=0.85;
 
                 if(grid[x][y].conn[i]) {
                     int nx = (x+xoff[i]+GRID_SIZE_X)%GRID_SIZE_X;
@@ -364,7 +369,7 @@ void DrawNetwork(sf::RenderWindow & window,
             float nx = 100.0f+x*20.0f;
             float ny = 100.0f+y*20.0f;
 
-            cs.setPosition(nx,ny);
+            cs.setPosition({nx,ny});
             int alpha = static_cast<int>(255*network[x][y][player]->GetCurrentOutputNormalized());
             if(alpha > 255) alpha=255;
             color.a=( alpha );
@@ -373,27 +378,27 @@ void DrawNetwork(sf::RenderWindow & window,
 
             // Draw North
             if(grid[x][y].conn[0]) {
-                line[0].position=sf::Vector2f(nx+5.0f,ny);
-                line[1].position=sf::Vector2f(nx+5.0f,ny-10.0f);
-                window.draw(line,2,sf::Lines);
+                line[0].position=sf::Vector2f({nx+5.0f,ny});
+                line[1].position=sf::Vector2f({nx+5.0f,ny-10.0f});
+                window.draw(line,2,sf::PrimitiveType::Lines);
             }
             // Draw South
             if(grid[x][y].conn[1]) {
-                line[0].position=sf::Vector2f(nx+5.0f,ny+10.0f);
-                line[1].position=sf::Vector2f(nx+5.0f,ny+20.0f);
-                window.draw(line,2,sf::Lines);
+                line[0].position=sf::Vector2f({nx+5.0f,ny+10.0f});
+                line[1].position=sf::Vector2f({nx+5.0f,ny+20.0f});
+                window.draw(line,2,sf::PrimitiveType::Lines);
             }
             // Draw East
             if(grid[x][y].conn[2]) {
-                line[0].position=sf::Vector2f(nx+10.0f,ny+5.0f);
-                line[1].position=sf::Vector2f(nx+20.0f,ny+5.0f);
-                window.draw(line,2,sf::Lines);
+                line[0].position=sf::Vector2f({nx+10.0f,ny+5.0f});
+                line[1].position=sf::Vector2f({nx+20.0f,ny+5.0f});
+                window.draw(line,2,sf::PrimitiveType::Lines);
             }
             // Draw West
             if(grid[x][y].conn[3]) {
-                line[0].position=sf::Vector2f(nx,ny+5.0f);
-                line[1].position=sf::Vector2f(nx-10.0f,ny+5.0f);
-                window.draw(line,2,sf::Lines);
+                line[0].position=sf::Vector2f({nx,ny+5.0f});
+                line[1].position=sf::Vector2f({nx-10.0f,ny+5.0f});
+                window.draw(line,2,sf::PrimitiveType::Lines);
             }
         }
     }
@@ -411,7 +416,7 @@ void DrawNetwork2(sf::RenderWindow & window,
             for(int i = 0; i < NUM_PLAYERS; i++) {
                 float px=x*SQUARE_SIZE+100.0f;
                 float py=y*SQUARE_SIZE+100.0f;
-                rs.setPosition(px,py);
+                rs.setPosition({px,py});
                 int alpha = static_cast<int>(255*network[x][y][i]->GetCurrentOutputNormalized());
                 if(alpha > 255) alpha=255;
                 colors[i].a=( alpha );
@@ -457,7 +462,7 @@ void UpdateNetwork(vec<vec<vsptr<Neuron>>> & network,
 
     
     #pragma omp parallel for shared(energy)
-    
+
     for(int x = GRID_SIZE_X-1; x >= 0; x--) {
         for(int y = GRID_SIZE_Y-1; y >= 0; y--) {
             //int first = dist(rng);
@@ -476,7 +481,7 @@ void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x,
 }
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y, sf::Color color) {
     text.setString(msg);
-    text.setPosition(x,y);
+    text.setPosition({x,y});
     text.setFillColor(color);
     win.draw(text);
 }

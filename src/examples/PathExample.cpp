@@ -38,7 +38,7 @@ const float MAX_SIGHT = 1000.0f;
 const float EYE_INPUT_WEIGHT = 1.0f;
 const float AGENT_SPEED = 500.0f;
 const int NUM_OBSTACLES = 250;
-const double ALPHABASE = 2.0;
+const double ALPHABASE = 1.0;
 const float SHIFT_AMT = 100.0f;
 const int NUM_SIDE_EYES=12;
 const float LEFT_EYE_SPACING = -M_PI/36.0; // 5 degrees
@@ -118,7 +118,7 @@ struct Rect : sf::RectangleShape {
     }
     void Draw(sf::RenderWindow & window, float scale) {
         setSize(sf::Vector2f((br.x-tl.x)/scale, (br.y-tl.y)/scale));
-        setPosition(tl.x/scale,tl.y/scale);
+        setPosition({tl.x/scale,tl.y/scale});
         window.draw(*this);
     }
     bool ContainsPoint(Point point) {
@@ -231,7 +231,7 @@ struct Agent : public sf::CircleShape {
         :sf::CircleShape(_radius), radius(_radius)
     {
         loc = Point(_x,_y);
-        setOrigin(8.0f,8.0f);
+        setOrigin({8.0f,8.0f});
         setPosition(sf::Vector2f(loc.x,loc.y));
         setFillColor(sf::Color::Blue);
         
@@ -457,7 +457,7 @@ struct Agent : public sf::CircleShape {
     }
     void Draw(sf::RenderWindow & window, float scale) {
         setRadius(radius/scale);
-        setOrigin(radius/(2.0f*scale),radius/(2.0f*scale));
+        setOrigin({radius/(2.0f*scale),radius/(2.0f*scale)});
         setPosition(sf::Vector2f(loc.x/scale,loc.y/scale));
         window.draw(*this);
     }
@@ -470,10 +470,10 @@ struct Agent : public sf::CircleShape {
 ///////////////////////////////////////////////////////////////////
 int main(int argc, char**argv) {
     
-    sf::Text text;
+    
     sf::Font font;
     sf::RenderWindow window;
-    sf::Event event;
+
     bool run=true;
     bool pause =true;
 
@@ -486,19 +486,19 @@ int main(int argc, char**argv) {
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
-    if(!font.loadFromFile("resources/saxmono.ttf")) {
+    if(!font.openFromFile("resources/saxmono.ttf")) {
         std::cout << "DISPLAY: Unable to load font\n";
-    } else {
-        text.setFont(font);
-        text.setFillColor(sf::Color::White);
-        text.setCharacterSize(15);
     }
+    sf::Text text(font);
+    text.setFillColor(sf::Color::White);
+    text.setCharacterSize(15);
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 4;
 
-    window.create(sf::VideoMode(1000,1000),
-            "TEST SPSP",sf::Style::Titlebar,settings);
+    // sf::ContextSettings settings;
+    // settings.antialiasingLevel = 4;
+
+    window.create(sf::VideoMode({1000,1000}),
+            "TEST SPSP",sf::Style::Titlebar);
     window.setVerticalSyncEnabled(true);
     window.setFramerateLimit(60);
 
@@ -531,17 +531,20 @@ int main(int argc, char**argv) {
 
         //--------------------------------------------------
         // INPUT
-        while(window.pollEvent(event)) {
-            if(event.type==sf::Event::KeyPressed) {
-                switch(event.key.code) {
-                    case sf::Keyboard::Q: run=false; break;
-                    case sf::Keyboard::P: pause=!pause; break;
-                    case sf::Keyboard::PageDown: scale *= 2.0; break;
-                    case sf::Keyboard::PageUp: scale /= 2.0; break;
-                    case sf::Keyboard::Up: ShiftObjects(0.0f,SHIFT_AMT,goal,agent,obstacles); break;
-                    case sf::Keyboard::Down: ShiftObjects(0.0f,-SHIFT_AMT,goal,agent,obstacles); break;
-                    case sf::Keyboard::Left: ShiftObjects(SHIFT_AMT,0.0f,goal,agent,obstacles); break;
-                    case sf::Keyboard::Right: ShiftObjects(-SHIFT_AMT,0.0f,goal,agent,obstacles); break;
+        while(const std::optional event = window.pollEvent()) {
+            if(event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+            else if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                switch(keyPressed->scancode) {
+                    case sf::Keyboard::Scancode::Q: run=false; break;
+                    case sf::Keyboard::Scancode::P: pause=!pause; break;
+                    case sf::Keyboard::Scancode::PageDown: scale *= 2.0; break;
+                    case sf::Keyboard::Scancode::PageUp: scale /= 2.0; break;
+                    case sf::Keyboard::Scancode::Up: ShiftObjects(0.0f,SHIFT_AMT,goal,agent,obstacles); break;
+                    case sf::Keyboard::Scancode::Down: ShiftObjects(0.0f,-SHIFT_AMT,goal,agent,obstacles); break;
+                    case sf::Keyboard::Scancode::Left: ShiftObjects(SHIFT_AMT,0.0f,goal,agent,obstacles); break;
+                    case sf::Keyboard::Scancode::Right: ShiftObjects(-SHIFT_AMT,0.0f,goal,agent,obstacles); break;
                     default: break;
                 }
             }
@@ -577,28 +580,28 @@ int main(int argc, char**argv) {
         for(unsigned i = 0; i < NUM_SIDE_EYES; i++) {
 
             sf::Vertex left[] = {
-                sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
-                sf::Vertex(sf::Vector2f(agent.eyes_left_max[i].x/scale, agent.eyes_left_max[i].y/scale))  
+                sf::Vertex({sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)}),
+                sf::Vertex({sf::Vector2f(agent.eyes_left_max[i].x/scale, agent.eyes_left_max[i].y/scale)})  
             };
             sf::Vertex right[] = {
-                sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
-                sf::Vertex(sf::Vector2f(agent.eyes_right_max[i].x/scale, agent.eyes_right_max[i].y/scale))  
+                sf::Vertex({sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)}),
+                sf::Vertex({sf::Vector2f(agent.eyes_right_max[i].x/scale, agent.eyes_right_max[i].y/scale)})  
             };
 
             left[0].color=sf::Color::Red;
             right[0].color=sf::Color::Red;
 
-            window.draw(left,2,sf::Lines);
-            window.draw(right,2,sf::Lines);
+            window.draw(left,2,sf::PrimitiveType::Lines);
+            window.draw(right,2,sf::PrimitiveType::Lines);
         }
         sf::Vertex forward[] = {
-            sf::Vertex(sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)),
-            sf::Vertex(sf::Vector2f(agent.eye_forward_max.x/scale, agent.eye_forward_max.y/scale))  
+            sf::Vertex({sf::Vector2f(agent.loc.x/scale,agent.loc.y/scale)}),
+            sf::Vertex({sf::Vector2f(agent.eye_forward_max.x/scale, agent.eye_forward_max.y/scale)})  
         };
         
         forward[0].color=sf::Color::Red;
         
-        window.draw(forward,2,sf::Lines);
+        window.draw(forward,2,sf::PrimitiveType::Lines);
 
         for(unsigned i = 0; i < obstacles.size(); i++) {
             obstacles[i].Draw(window,scale);
@@ -639,7 +642,7 @@ void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x,
 }
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y, sf::Color color) {
     text.setString(msg);
-    text.setPosition(x,y);
+    text.setPosition({x,y});
     text.setFillColor(color);
     win.draw(text);
 }

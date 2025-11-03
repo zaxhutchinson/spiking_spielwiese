@@ -4,7 +4,7 @@ In this example, each Bee is given a specific number of leader bees
 which it follows. The number of leaders is determined by NUM_LEADERS.
 
 */
-
+#include<cstring>
 #include<iostream>
 #include<string>
 #include<cmath>
@@ -26,12 +26,14 @@ using namespace spsp;
 const float WIDTH=1000.0f;
 const float HEIGHT=1000.0f;
 const int NUM_BEES=100;
-const int NUM_LEADERS=10;
+const int NUM_LEADERS=NUM_BEES;
 const double BEE_SYN_STRENGTH=5.0;
 const float SPEED=10.0f;
 const float SHIFT_AMT = 100.0f;
 const float BEE_CIRCLE_SIZE = 32.0f;
 const double ALPHABASE = 60.0;
+
+inline bool RANDOM_LEADERS = false;
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
@@ -59,7 +61,7 @@ struct Bee : public sf::CircleShape
         this->setFillColor(sf::Color::Yellow);
         this->x=x; this->y=y;
         this->vx=0.0f;; this->vy=0.0f;
-        this->setPosition(x,y);
+        this->setPosition({x,y});
         x_pos = std::make_shared<SimpleSynapse>(BEE_SYN_STRENGTH);
         x_neg = std::make_shared<SimpleSynapse>(-BEE_SYN_STRENGTH);
         y_pos = std::make_shared<SimpleSynapse>(BEE_SYN_STRENGTH);
@@ -111,16 +113,16 @@ struct Bee : public sf::CircleShape
         x += dx;
         y += dy;
 
-        this->setPosition(x,y);
+        this->setPosition({x,y});
     }
     void ShiftPosition(float x, float y) {
         this->x += x;
         this->y += y;
-        setPosition(this->x, this->y);
+        setPosition({this->x, this->y});
     }
     void Draw(sf::RenderWindow & window, float scale) {
         setRadius(radius/scale);
-        setPosition(x/scale, y/scale);
+        setPosition({x/scale, y/scale});
         window.draw(*this);
     }
 };
@@ -142,10 +144,17 @@ void DrawLeaderLines(sf::RenderWindow & window, sptr<Bee> bee, float scale);
 
 int main(int argc, char**argv) {
     
-    sf::Text text;
+    for(int i = 0; i < argc; i++) {
+
+        if(strcmp(argv[i], "-r")==0) {
+            RANDOM_LEADERS = true;
+            std::cout << "RANDOM_LEADERS: true\n";
+        }
+
+    }
+    
     sf::Font font;
     sf::RenderWindow window;
-    sf::Event event;
     bool run=true;
     bool pause =true;
     bool leader_lines=false;
@@ -163,19 +172,19 @@ int main(int argc, char**argv) {
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////
-    if(!font.loadFromFile("resources/saxmono.ttf")) {
+    if(!font.openFromFile("resources/saxmono.ttf")) {
         std::cout << "DISPLAY: Unable to load font\n";
-    } else {
-        text.setFont(font);
-        text.setFillColor(sf::Color::White);
-        text.setCharacterSize(15);
     }
+    sf::Text text(font);
+    text.setFillColor(sf::Color::White);
+    text.setCharacterSize(15);
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 4;
 
-    window.create(sf::VideoMode(1000,1000),
-            "TEST SPSP",sf::Style::Titlebar,settings);
+    // sf::ContextSettings settings;
+    // settings.antialiasingLevel = 4;
+
+    window.create(sf::VideoMode({1000,1000}),
+            "TEST SPSP",sf::Style::Titlebar);
     window.setVerticalSyncEnabled(true);
     window.setFramerateLimit(60);
 
@@ -231,20 +240,24 @@ int main(int argc, char**argv) {
 
         //--------------------------------------------------
         // INPUT
-        while(window.pollEvent(event)) {
-            if(event.type==sf::Event::KeyPressed) {
-                switch(event.key.code) {
-                    case sf::Keyboard::Q: run=false; break;
-                    case sf::Keyboard::P: pause=!pause; break;
-                    case sf::Keyboard::PageDown: scale *= 2.0; break;
-                    case sf::Keyboard::PageUp: scale /= 2.0; break;
-                    case sf::Keyboard::Up: ShiftBees(bees,0.0f,SHIFT_AMT); break;
-                    case sf::Keyboard::Down: ShiftBees(bees,0.0f,-SHIFT_AMT); break;
-                    case sf::Keyboard::Left: ShiftBees(bees,SHIFT_AMT,0.0f); break;
-                    case sf::Keyboard::Right: ShiftBees(bees,-SHIFT_AMT,0.0f); break;
-                    case sf::Keyboard::L: leader_lines=!leader_lines; break;
-                    case sf::Keyboard::RBracket: show_bee_index=(show_bee_index+1)%NUM_BEES; break;
-                    case sf::Keyboard::LBracket: show_bee_index=(show_bee_index-1+NUM_BEES)%NUM_BEES; break;
+
+        while(const std::optional event = window.pollEvent()) {
+            if(event->is<sf::Event::Closed>()) {
+                window.close();
+            }
+            else if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                switch(keyPressed->scancode) {
+                    case sf::Keyboard::Scancode::Q: run=false; break;
+                    case sf::Keyboard::Scancode::P: pause=!pause; break;
+                    case sf::Keyboard::Scancode::PageDown: scale *= 2.0; break;
+                    case sf::Keyboard::Scancode::PageUp: scale /= 2.0; break;
+                    case sf::Keyboard::Scancode::Up: ShiftBees(bees,0.0f,SHIFT_AMT); break;
+                    case sf::Keyboard::Scancode::Down: ShiftBees(bees,0.0f,-SHIFT_AMT); break;
+                    case sf::Keyboard::Scancode::Left: ShiftBees(bees,SHIFT_AMT,0.0f); break;
+                    case sf::Keyboard::Scancode::Right: ShiftBees(bees,-SHIFT_AMT,0.0f); break;
+                    case sf::Keyboard::Scancode::L: leader_lines=!leader_lines; break;
+                    case sf::Keyboard::Scancode::RBracket: show_bee_index=(show_bee_index+1)%NUM_BEES; break;
+                    case sf::Keyboard::Scancode::LBracket: show_bee_index=(show_bee_index-1+NUM_BEES)%NUM_BEES; break;
                     default: break;
                 }
             }
@@ -289,7 +302,7 @@ void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x,
 }
 void PrintMsg(sf::RenderWindow & win, sf::Text & text, std::string msg, float x, float y, sf::Color color) {
     text.setString(msg);
-    text.setPosition(x,y);
+    text.setPosition({x,y});
     text.setFillColor(color);
     win.draw(text);
 }
@@ -308,13 +321,50 @@ void RandomizeBeeLeadersOne(vsptr<Bee> bees, std::mt19937_64 & rng) {
 
 void RandomizeBeeLeadersTwo(vsptr<Bee> bees, std::mt19937_64 & rng) {
    // std::shuffle(bees.begin(), bees.end(), rng);
+    vec<int> indexes;
+    for(int i = 0; i < bees.size(); i++) {
+        indexes.push_back(i);
+    }
+
     for(unsigned i = 0; i < bees.size(); i++) {
 
         vsptr<Bee> leaders;
-        for(unsigned l = 1; l <= NUM_LEADERS; l++) {
-            sptr<Bee> leader = bees[ (i+l)%bees.size() ];
-            leaders.push_back(leader);
+
+        if(RANDOM_LEADERS) {
+            std::shuffle(indexes.begin(), indexes.end(), rng);
+            for(unsigned l = 1, n=0; n <= NUM_LEADERS; l++) {
+
+                int m = indexes[l];
+                if(m == i) continue;
+                else n++;
+                sptr<Bee> leader = bees[ m%bees.size() ];
+                leaders.push_back(leader);
+
+            }
+        } else {
+            for(unsigned l = 1; l <= NUM_LEADERS; l++ ) {
+
+                sptr<Bee> leader = bees[ (i+l)%bees.size() ];
+                leaders.push_back(leader);
+
+            }
         }
+
+        
+        // for(unsigned l = 1, n=0; n <= NUM_LEADERS; l++) {
+        //     if(RANDOM_LEADERS) {
+        //         int m = indexes[l];
+        //         if(m == i) continue;
+        //         else n++;
+        //         sptr<Bee> leader = bees[ m%bees.size() ];
+        //         // sptr<Bee> leader = bees[ (i+l)%bees.size() ];
+        //         leaders.push_back(leader);
+        //     }
+        //     else {
+        //         sptr<Bee> leader = bees[ (i+l)%bees.size() ];
+        //         leaders.push_back(leader);
+        //     }
+        // }
 
         sptr<Bee> follower = bees[i];
         
@@ -334,11 +384,11 @@ void DrawLeaderLines(sf::RenderWindow & window, sptr<Bee> bee, float scale) {
     for(unsigned i = 0; i < bee->leaders.size(); i++) {
         sf::Vertex line[] =
         {
-            sf::Vertex(sf::Vector2f(bee->x/scale,bee->y/scale)),
-            sf::Vertex(sf::Vector2f(bee->leaders[i]->x/scale, bee->leaders[i]->y/scale))
+            sf::Vertex({sf::Vector2f(bee->x/scale,bee->y/scale)}),
+            sf::Vertex({sf::Vector2f(bee->leaders[i]->x/scale, bee->leaders[i]->y/scale)})
         };
         line[0].color = sf::Color::Cyan;
         line[1].color = sf::Color::Blue;
-        window.draw(line,2,sf::Lines);
+        window.draw(line,2,sf::PrimitiveType::Lines);
     }
 }

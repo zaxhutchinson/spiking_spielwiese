@@ -101,8 +101,8 @@ namespace spsp {
     double SimpleSynapse::do_GetSignal(uint64_t time) const {
         // Positive modulo
         // (delay+1) is to get time-1 when delay is 0, default.
-        int index = ( (time-(delay+1))%signal_history_size+signal_history_size )
-                    % signal_history_size;
+        int index = (time+1)%signal_history_size;//( (time-(delay+1))%signal_history_size+signal_history_size )
+                    //% signal_history_size;
         return signal[index];
     }
 
